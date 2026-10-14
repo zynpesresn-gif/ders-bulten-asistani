@@ -1,0 +1,17 @@
+{
+  "id": "./",
+  "name": "Ders & Bülten Asistanı",
+  "short_name": "Ders & Bülten",
+  "description": "Özel ders takibi ve veli bülteni hazırlama uygulaması",
+  "lang": "tr-TR",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f8fafc",
+  "theme_color": "#4f46e5",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
