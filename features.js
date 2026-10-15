@@ -343,3 +343,282 @@
         connectStudentArchive();
     }
 })();
+
+/* Pastel bülten tasarımı, görsel paylaşımı ve hatırlatma düzeltmesi */
+(function () {
+    'use strict';
+
+    function getBulletinText() {
+        const area = document.getElementById('bulletinTextPreview');
+        return area ? area.value.trim() : '';
+    }
+
+    function createPastelImage() {
+        return new Promise(function (resolve, reject) {
+            const text = getBulletinText();
+            if (!text) {
+                alert('Önce bülteni oluşturun.');
+                reject(new Error('Bülten boş.'));
+                return;
+            }
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const width = 900;
+            const margin = 64;
+            const contentWidth = width - margin * 2;
+            const cleanText = text.replace(/\*/g, '');
+            const paragraphs = cleanText.split('\n');
+            const lines = [];
+
+            ctx.font = '25px Arial';
+
+            paragraphs.forEach(function (paragraph) {
+                if (!paragraph.trim()) {
+                    lines.push('');
+                    return;
+                }
+
+                let line = '';
+                paragraph.split(/\s+/).forEach(function (word) {
+                    const test = line ? line + ' ' + word : word;
+
+                    if (ctx.measureText(test).width > contentWidth && line) {
+                        lines.push(line);
+                        line = word;
+                    } else {
+                        line = test;
+                    }
+                });
+
+                if (line) lines.push(line);
+            });
+
+            const lineHeight = 39;
+            const headerHeight = 125;
+            const footerHeight = 100;
+            canvas.width = width;
+            canvas.height = Math.max(
+                520,
+                headerHeight + lines.length * lineHeight + footerHeight + 70
+            );
+
+            const roundRect = function (x, y, w, h, r) {
+                ctx.beginPath();
+                ctx.roundRect(x, y, w, h, r);
+            };
+
+            ctx.fillStyle = '#f2edf7';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#dceee8';
+            ctx.beginPath();
+            ctx.arc(820, 60, 105, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#f4e2e8';
+            ctx.beginPath();
+            ctx.arc(65, canvas.height - 40, 100, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#fffdf9';
+            roundRect(28, 28, width - 56, canvas.height - 56, 28);
+            ctx.fill();
+
+            ctx.fillStyle = '#e9def3';
+            roundRect(28, 28, width - 56, headerHeight, 28);
+            ctx.fill();
+
+            ctx.fillStyle = '#705486';
+            ctx.font = 'bold 30px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('ÖZEL DERS • VELİ BÜLTENİ', width / 2, 80);
+
+            ctx.fillStyle = '#776a80';
+            ctx.font = '18px Arial';
+            ctx.fillText('Öğrenme yolculuğundan küçük bir not', width / 2, 112);
+
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#393344';
+            ctx.font = '25px Arial';
+
+            let y = headerHeight + 48;
+
+            lines.forEach(function (line) {
+                if (!line) {
+                    y += 17;
+                    return;
+                }
+
+                ctx.fillText(line, margin, y);
+                y += lineHeight;
+            });
+
+            ctx.strokeStyle = '#e5d9ed';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(margin, canvas.height - footerHeight);
+            ctx.lineTo(width - margin, canvas.height - footerHeight);
+            ctx.stroke();
+
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#705486';
+            ctx.font = 'bold 25px Arial';
+            ctx.fillText(
+                'Sevgiyle, Zeynep Esra Hoca',
+                width / 2,
+                canvas.height - 65
+            );
+
+            canvas.toBlob(function (blob) {
+                if (blob) resolve(blob);
+                else reject(new Error('Görsel oluşturulamadı.'));
+            }, 'image/png');
+        });
+    }
+
+    function installFeatures() {
+        const area = document.getElementById('bulletinTextPreview');
+        const group = document.getElementById('ekOzellikButonlari');
+
+        if (!area || !group || group.dataset.pastelReady) return;
+        group.dataset.pastelReady = 'true';
+
+        group.style.gap = '10px';
+
+        const buttons = group.querySelectorAll('button');
+        buttons.forEach(function (button) {
+            button.style.background = '#e9def3';
+            button.style.color = '#59456b';
+            button.style.border = '1px solid #ddcde9';
+            button.style.borderRadius = '14px';
+            button.style.padding = '12px 16px';
+        });
+
+        const imageButton = buttons[1];
+        if (imageButton) {
+            imageButton.textContent = '🎨 Pastel görseli kaydet';
+
+            imageButton.onclick = async function () {
+                try {
+                    const blob = await createPastelImage();
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'zeynep-esra-hoca-veli-bulteni.png';
+                    link.click();
+                    setTimeout(function () {
+                        URL.revokeObjectURL(url);
+                    }, 10000);
+                } catch (error) {
+                    alert('Görsel oluşturulamadı. Lütfen tekrar deneyin.');
+                }
+            };
+        }
+
+        let shareButton = document.getElementById('pastelWhatsAppShare');
+
+        if (!shareButton) {
+            shareButton = document.createElement('button');
+            shareButton.id = 'pastelWhatsAppShare';
+            shareButton.type = 'button';
+            shareButton.textContent = '💌 WhatsApp’ta Görsel Paylaş';
+            shareButton.style.cssText =
+                'background:#dceee8;color:#315d52;border:1px solid #c6e2d9;' +
+                'border-radius:14px;padding:12px 16px;font-size:14px;';
+
+            shareButton.addEventListener('click', async function () {
+                try {
+                    const blob = await createPastelImage();
+                    const file = new File(
+                        [blob],
+                        'veli-bulteni.png',
+                        { type: 'image/png' }
+                    );
+
+                    if (navigator.canShare && navigator.share &&
+                        navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Veli Bülteni'
+                        });
+                    } else {
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = 'veli-bulteni.png';
+                        link.click();
+
+                        setTimeout(function () {
+                            URL.revokeObjectURL(url);
+                        }, 10000);
+
+                        alert(
+                            'Görsel kaydedildi. WhatsApp sohbetini açıp ' +
+                            'galeriden bu görseli ekleyebilirsiniz.'
+                        );
+                    }
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        alert('Paylaşım açılamadı. Görseli kaydetmeyi deneyin.');
+                    }
+                }
+            });
+
+            group.appendChild(shareButton);
+        }
+    }
+
+    function fixReminderText() {
+        if (typeof window.generateBulletinText !== 'function') return;
+
+        const original = window.generateBulletinText;
+        if (original._reminderFixed) return;
+
+        const wrapped = function () {
+            original();
+
+            if (typeof activeBulletinType === 'undefined' ||
+                activeBulletinType !== 'reminder' ||
+                !selectedLessonForBulletin) return;
+
+            const lesson = selectedLessonForBulletin;
+            const student = students.find(function (item) {
+                return item.id == lesson.studentId;
+            });
+
+            if (!student) return;
+
+            const branch = String(
+                teacherProfile.branch || 'Matematik'
+            ).replace(/\s*öğretmeni?\s*$/i, '').trim() || 'Matematik';
+
+            const closing = document.getElementById('closingPhraseSelect');
+            const phrase = closing ? closing.value : 'İyi günler dileriz.';
+            const lowerPhrase =
+                phrase.charAt(0).toLocaleLowerCase('tr-TR') + phrase.slice(1);
+
+            document.getElementById('bulletinTextPreview').value =
+                'Merhaba ' + (student.parentName || 'Sayın Velim') + ',\n\n' +
+                'Yarın ' + student.name + ' ile ' +
+                branch.toLocaleLowerCase('tr-TR') +
+                ' dersimiz vardır. 😊\n\n' +
+                'Bilginize sunar, ' + lowerPhrase + '\n\n' +
+                'Zeynep Esra Hoca';
+        };
+
+        wrapped._reminderFixed = true;
+        window.generateBulletinText = wrapped;
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () {
+            installFeatures();
+            fixReminderText();
+        });
+    } else {
+        installFeatures();
+        fixReminderText();
+    }
+})();
+
