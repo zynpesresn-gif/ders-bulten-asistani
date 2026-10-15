@@ -1,68 +1,510 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#4f46e5">
-<meta name="description" content="Özel derslerinizi, öğrenci kayıtlarınızı ve veli bültenlerinizi tek yerden yönetin.">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon-192.png" type="image/png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<title>Ders & Bülten Asistanı</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>body{font-family:Inter,sans-serif}.nav-active{background:#4f46e5!important;color:white!important}</style>
-</head>
-<body class="bg-slate-50 text-slate-800 min-h-screen md:flex">
-<aside class="w-full md:w-72 bg-slate-900 text-white p-4 md:min-h-screen md:sticky md:top-0 flex flex-col">
- <div class="flex items-center gap-3 pb-5 border-b border-slate-700"><div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-xl"><i class="fa-solid fa-graduation-cap"></i></div><div><h1 class="font-bold text-lg">Ders & Bülten</h1><p class="text-xs text-slate-400">Özel Ders Takip Asistanı</p></div></div>
- <button onclick="openProfile()" class="mt-4 p-3 bg-slate-800 rounded-xl text-left flex gap-3 items-center"><i class="fa-solid fa-user-tie text-indigo-300"></i><span class="min-w-0"><b id="teacherNameSide" class="block text-sm truncate">Öğretmen Profilim</b><small id="teacherBranchSide" class="text-slate-400">Profil ayarları</small></span></button>
- <nav class="mt-6 space-y-2"><button data-tab="dashboard" onclick="showTab('dashboard')" class="nav-btn nav-active w-full text-left px-4 py-3 rounded-xl text-sm"><i class="fa-solid fa-chart-pie w-6"></i> Genel Bakış</button><button data-tab="lesson" onclick="showTab('lesson')" class="nav-btn w-full text-left px-4 py-3 rounded-xl text-sm text-slate-300"><i class="fa-solid fa-plus-circle w-6"></i> Yeni Ders Gir</button><button data-tab="students" onclick="showTab('students')" class="nav-btn w-full text-left px-4 py-3 rounded-xl text-sm text-slate-300"><i class="fa-solid fa-user-graduate w-6"></i> Öğrencilerim</button><button data-tab="reports" onclick="showTab('reports')" class="nav-btn w-full text-left px-4 py-3 rounded-xl text-sm text-slate-300"><i class="fa-solid fa-paper-plane w-6"></i> Veli Bültenleri</button></nav>
- <p class="mt-auto pt-8 text-xs text-slate-500">Veriler bu tarayıcıda saklanır.</p>
-</aside>
-<main class="flex-1 p-4 md:p-8 max-w-6xl w-full mx-auto">
-<section id="tab-dashboard" class="tab space-y-6"><div class="flex flex-wrap gap-3 justify-between items-center"><div><h2 class="text-2xl font-bold">Hoş geldiniz 👋</h2><p class="text-sm text-slate-500">Derslerinizi ve veli bültenlerinizi yönetin.</p></div><button onclick="showTab('lesson')" class="px-4 py-3 bg-indigo-600 text-white rounded-xl text-sm">+ Yeni Ders Kaydet</button></div>
-<div class="grid sm:grid-cols-3 gap-4"><div class="bg-white p-5 rounded-2xl border"><p class="text-xs text-slate-500">Öğrenci Sayısı</p><h3 id="studentCount" class="text-3xl font-bold">0</h3></div><div class="bg-white p-5 rounded-2xl border"><p class="text-xs text-slate-500">İşlenen Dersler</p><h3 id="lessonCount" class="text-3xl font-bold">0</h3></div><div class="bg-white p-5 rounded-2xl border"><p class="text-xs text-slate-500">Bülten Hazırlanan Ders</p><h3 id="bulletinCount" class="text-3xl font-bold">0</h3></div></div>
-<div class="bg-white rounded-2xl border p-5"><h3 class="font-bold text-lg mb-4">Son İşlenen Dersler</h3><div id="recentLessons" class="space-y-3"></div></div></section>
-<section id="tab-lesson" class="tab hidden space-y-5"><h2 class="text-2xl font-bold">Ders & Ödev Kaydı</h2><form id="lessonForm" class="bg-white rounded-2xl border p-6 space-y-5"><div class="grid md:grid-cols-2 gap-4"><label class="text-sm font-medium">Öğrenci *<select id="lessonStudent" required class="mt-2 w-full p-3 bg-slate-50 border rounded-xl"></select></label><label class="text-sm font-medium">Ders tarihi *<input id="lessonDate" type="date" required class="mt-2 w-full p-3 bg-slate-50 border rounded-xl"></label></div><label class="block text-sm font-medium">İşlenen konular *<textarea id="lessonSubject" required rows="3" placeholder="Örn. Üslü sayılar" class="mt-2 w-full p-3 bg-slate-50 border rounded-xl"></textarea></label><label class="block text-sm font-medium">Verilen ödevler<textarea id="lessonHomework" rows="3" placeholder="Örn. Test 3 çözülecek" class="mt-2 w-full p-3 bg-slate-50 border rounded-xl"></textarea></label><div class="flex flex-wrap justify-end gap-3"><button type="button" onclick="saveLesson(false)" class="px-5 py-3 bg-slate-100 rounded-xl">Yalnızca Kaydet</button><button type="button" onclick="saveLesson(true)" class="px-5 py-3 bg-indigo-600 text-white rounded-xl">Kaydet ve Bülten Hazırla</button></div></form></section>
-<section id="tab-students" class="tab hidden space-y-5"><div class="flex flex-wrap justify-between items-center gap-3"><h2 class="text-2xl font-bold">Öğrencilerim</h2><button onclick="openStudent()" class="px-4 py-3 bg-indigo-600 text-white rounded-xl text-sm">+ Yeni Öğrenci Ekle</button></div><div id="studentGrid" class="grid md:grid-cols-2 xl:grid-cols-3 gap-4"></div></section>
-<section id="tab-reports" class="tab hidden space-y-5"><h2 class="text-2xl font-bold">Veli Bülten Hazırlayıcı</h2><div class="grid lg:grid-cols-3 gap-5"><div class="bg-white rounded-2xl border p-5"><h3 class="font-bold mb-3">1. Ders kaydı seçin</h3><div id="lessonChoices" class="space-y-2 max-h-96 overflow-y-auto"></div></div><div class="lg:col-span-2 bg-white rounded-2xl border p-5 space-y-4"><div class="flex flex-wrap justify-between items-center gap-3"><h3 class="font-bold">2. Bülten önizleme</h3><div class="flex gap-2"><button id="friendlyBtn" onclick="setTone('friendly')" class="px-3 py-2 rounded-lg bg-indigo-100 text-indigo-700 text-sm">Samimi</button><button id="formalBtn" onclick="setTone('formal')" class="px-3 py-2 rounded-lg bg-slate-100 text-sm">Resmî</button></div></div><textarea id="bulletinText" rows="12" class="w-full p-4 bg-slate-50 border rounded-xl text-sm leading-relaxed" placeholder="Bülten oluşturmak için soldan bir ders seçin."></textarea><div class="flex flex-wrap gap-3"><button onclick="copyBulletin()" class="flex-1 px-4 py-3 bg-slate-100 rounded-xl"><i class="fa-regular fa-copy mr-2"></i>Metni Kopyala</button><button onclick="sendWhatsApp()" class="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-xl"><i class="fa-brands fa-whatsapp mr-2"></i>WhatsApp'ta Aç</button></div><p class="text-xs text-slate-500">WhatsApp açıldığında mesajı kontrol edip kendiniz gönderirsiniz.</p></div></div></section>
-</main>
-<div id="profileModal" class="hidden fixed inset-0 bg-slate-900/60 z-50 p-4 items-center justify-center"><form onsubmit="saveProfile(event)" class="bg-white rounded-2xl p-6 w-full max-w-md space-y-4"><h3 class="font-bold text-lg">Öğretmen Profil Ayarları</h3><input id="profileName" required placeholder="Adınız Soyadınız" class="w-full p-3 border rounded-xl"><input id="profileBranch" required placeholder="Branşınız" class="w-full p-3 border rounded-xl"><div class="flex justify-end gap-2"><button type="button" onclick="closeModal('profileModal')" class="px-4 py-2 bg-slate-100 rounded-xl">İptal</button><button class="px-4 py-2 bg-indigo-600 text-white rounded-xl">Kaydet</button></div></form></div>
-<div id="studentModal" class="hidden fixed inset-0 bg-slate-900/60 z-50 p-4 items-center justify-center"><form onsubmit="saveStudent(event)" class="bg-white rounded-2xl p-6 w-full max-w-md space-y-3"><h3 class="font-bold text-lg">Yeni Öğrenci Ekle</h3><input id="stdName" required placeholder="Öğrenci adı soyadı" class="w-full p-3 border rounded-xl"><input id="stdGrade" required placeholder="Sınıf / seviye" class="w-full p-3 border rounded-xl"><input id="stdParent" placeholder="Veli adı soyadı" class="w-full p-3 border rounded-xl"><input id="stdPhone" required type="tel" placeholder="Veli WhatsApp telefonu" class="w-full p-3 border rounded-xl"><div class="flex justify-end gap-2"><button type="button" onclick="closeModal('studentModal')" class="px-4 py-2 bg-slate-100 rounded-xl">İptal</button><button class="px-4 py-2 bg-indigo-600 text-white rounded-xl">Kaydet</button></div></form></div>
-<script>
-const read=(key,fallback)=>{try{const v=JSON.parse(localStorage.getItem(key));return v??fallback}catch{return fallback}};
-let students=read('dt_students',[]), lessons=read('dt_lessons',[]), teacher=read('dt_teacher',{name:'',branch:'Matematik Öğretmeni'}), selectedLesson=null, tone='friendly', bulletinPrepared=new Set(read('dt_bulletins',[]));
-const persist=()=>{localStorage.setItem('dt_students',JSON.stringify(students));localStorage.setItem('dt_lessons',JSON.stringify(lessons));localStorage.setItem('dt_teacher',JSON.stringify(teacher));localStorage.setItem('dt_bulletins',JSON.stringify([...bulletinPrepared]));};
-function showTab(id){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));document.getElementById('tab-'+id).classList.remove('hidden');document.querySelectorAll('.nav-btn').forEach(x=>{x.classList.remove('nav-active');x.classList.add('text-slate-300')});const b=document.querySelector(`[data-tab="${id}"]`);if(b){b.classList.add('nav-active');b.classList.remove('text-slate-300')}if(id==='reports')renderLessonChoices()}
-function openProfile(){document.getElementById('profileName').value=teacher.name||'';document.getElementById('profileBranch').value=teacher.branch||'';openModal('profileModal')}
-function saveProfile(e){e.preventDefault();teacher={name:document.getElementById('profileName').value.trim(),branch:document.getElementById('profileBranch').value.trim()};persist();render();closeModal('profileModal')}
-function openStudent(){document.getElementById('studentModal').querySelector('form').reset();openModal('studentModal')}
-function openModal(id){const m=document.getElementById(id);m.classList.remove('hidden');m.classList.add('flex')}
-function closeModal(id){const m=document.getElementById(id);m.classList.add('hidden');m.classList.remove('flex')}
-function saveStudent(e){e.preventDefault();students.push({id:Date.now(),name:val('stdName'),grade:val('stdGrade'),parentName:val('stdParent'),parentPhone:val('stdPhone')});persist();render();closeModal('studentModal')}
-function val(id){return document.getElementById(id).value.trim()}
-function saveLesson(andBulletin){const form=document.getElementById('lessonForm');if(!form.reportValidity())return;const l={id:Date.now(),studentId:Number(val('lessonStudent')),date:val('lessonDate'),subject:val('lessonSubject'),homework:val('lessonHomework')};lessons.unshift(l);persist();form.reset();document.getElementById('lessonDate').value=localDate();render();if(andBulletin){selectedLesson=l;bulletinPrepared.add(l.id);persist();showTab('reports');generateBulletin()}else{alert('Ders kaydı kaydedildi.');showTab('dashboard')}}
-function localDate(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
-function render(){document.getElementById('teacherNameSide').textContent=teacher.name||'Öğretmen Profilim';document.getElementById('teacherBranchSide').textContent=teacher.branch||'Profil ayarları';document.getElementById('studentCount').textContent=students.length;document.getElementById('lessonCount').textContent=lessons.length;document.getElementById('bulletinCount').textContent=bulletinPrepared.size;
-const select=document.getElementById('lessonStudent');select.innerHTML='<option value="">-- Öğrenci seçin --</option>'+students.map(s=>`<option value="${s.id}">${esc(s.name)} (${esc(s.grade)})</option>`).join('');
-document.getElementById('studentGrid').innerHTML=students.length?students.map(s=>`<article class="bg-white p-5 rounded-2xl border"><h3 class="font-bold">${esc(s.name)}</h3><p class="text-sm text-slate-500">${esc(s.grade)}</p><p class="text-sm mt-3">Veli: ${esc(s.parentName||'-')}</p><p class="text-sm text-slate-500">Tel: ${esc(s.parentPhone)}</p><button onclick="deleteStudent(${s.id})" class="mt-3 text-xs text-rose-600">Öğrenciyi sil</button></article>`).join(''):'<p class="text-slate-500">Henüz öğrenci eklenmedi.</p>';
-document.getElementById('recentLessons').innerHTML=lessons.slice(0,5).map(l=>{const s=students.find(x=>x.id===l.studentId);return `<div class="p-4 bg-slate-50 rounded-xl flex flex-wrap justify-between gap-3 items-center"><div><p class="font-semibold">${esc(s?.name||'Silinmiş öğrenci')} — ${esc(l.subject)}</p><p class="text-xs text-slate-500">${esc(l.date)}</p></div><button onclick="chooseLesson(${l.id})" class="text-sm text-indigo-600 font-semibold">Bülten hazırla</button></div>`}).join('')||'<p class="text-sm text-slate-500">Henüz ders kaydı yok.</p>';renderLessonChoices()}
-function deleteStudent(id){if(!confirm('Öğrenci silinsin mi? İlgili ders kayıtları korunur.'))return;students=students.filter(s=>s.id!==id);persist();render()}
-function renderLessonChoices(){document.getElementById('lessonChoices').innerHTML=lessons.map(l=>{const s=students.find(x=>x.id===l.studentId);return `<button onclick="chooseLesson(${l.id})" class="block text-left w-full p-3 bg-slate-50 hover:bg-indigo-50 rounded-xl text-sm"><b>${esc(s?.name||'Öğrenci')}</b><span class="block text-xs text-slate-500">${esc(l.date)} · ${esc(l.subject)}</span></button>`}).join('')||'<p class="text-sm text-slate-500">Önce bir ders kaydı ekleyin.</p>'}
-function chooseLesson(id){selectedLesson=lessons.find(l=>l.id===id);showTab('reports');generateBulletin()}
-function setTone(t){tone=t;document.getElementById('friendlyBtn').className='px-3 py-2 rounded-lg text-sm '+(t==='friendly'?'bg-indigo-100 text-indigo-700':'bg-slate-100');document.getElementById('formalBtn').className='px-3 py-2 rounded-lg text-sm '+(t==='formal'?'bg-indigo-100 text-indigo-700':'bg-slate-100');generateBulletin()}
-function generateBulletin(){if(!selectedLesson)return;const l=selectedLesson,s=students.find(x=>x.id===l.studentId)||{name:'Öğrenci',parentName:'Veli'};const teacherLine=[teacher.branch,teacher.name].filter(Boolean).join(' ');const greeting=tone==='friendly'?`Merhaba ${s.parentName||'Sayın Velim'},`:`Sayın ${s.parentName||'Veli'},`;const closing=tone==='friendly'?'İyi günler dilerim!':'Bilginize sunar, iyi günler dilerim.';document.getElementById('bulletinText').value=`${greeting}\n\n${s.name} ile yaptığımız dersin özeti:\n\nİşlenen konu: ${l.subject}\nVerilen ödev: ${l.homework||'Bu derste ödev verilmedi.'}\n\n${closing}\n${teacherLine}`;bulletinPrepared.add(l.id);persist();document.getElementById('bulletinCount').textContent=bulletinPrepared.size}
-async function copyBulletin(){const text=val('bulletinText');if(!text){alert('Önce bir ders seçin.');return}try{await navigator.clipboard.writeText(text);alert('Bülten metni kopyalandı.')}catch{document.getElementById('bulletinText').select();alert('Metin seçildi. Kopyalamak için basılı tutup Kopyala seçeneğine dokunun.')}}
-function sendWhatsApp(){if(!selectedLesson){alert('Önce bir ders seçin.');return}const s=students.find(x=>x.id===selectedLesson.studentId);if(!s){alert('Bu derse ait öğrenci bulunamadı.');return}let phone=(s.parentPhone||'').replace(/\D/g,'');if(phone.startsWith('00'))phone=phone.slice(2);if(phone.startsWith('0'))phone=phone.slice(1);if(phone.length===10)phone='90'+phone;if(phone.length<10){alert('Lütfen öğrencinin veli telefon numarasını kontrol edin.');return}window.open(`https://wa.me/${phone}?text=${encodeURIComponent(val('bulletinText'))}`,'_blank','noopener')}
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-document.getElementById('lessonForm').addEventListener('submit',e=>e.preventDefault());document.getElementById('lessonDate').value=localDate();render();
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Özel Ders Takip ve Veli Bülten Asistanı</title>
+    
+    <!-- Tailwind CSS & Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-// PWA: uygulama kabuğunu önbelleğe alır; kurulum için HTTPS gerekir.
-if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(err => console.warn('Service worker kaydedilemedi:', err)));
-}
-</script></body></html>
+    <style> body { font-family: 'Inter', sans-serif; } </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col md:flex-row">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-full md:w-72 bg-slate-900 text-white flex-shrink-0 flex flex-col justify-between p-4 md:h-screen md:sticky md:top-0 z-20">
+        <div>
+            <!-- App Logo -->
+            <div class="flex items-center justify-between pb-6 border-b border-slate-800 pt-2">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-xl text-white shadow-lg shadow-indigo-500/30">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-tight">Ders & Bülten</h1>
+                        <p class="text-xs text-slate-400">Özel Ders Takip Asistanı</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teacher Profile Widget -->
+            <div onclick="openProfileModal()" class="mt-4 p-3 bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 transition cursor-pointer flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-semibold text-sm">
+                    <i class="fa-solid fa-user-tie"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 id="sidebarTeacherName" class="text-sm font-semibold text-slate-200 truncate">Öğretmen Profilim</h4>
+                    <p id="sidebarTeacherBranch" class="text-xs text-slate-400 truncate">Düzenlemek için tıklayın</p>
+                </div>
+                <i class="fa-solid fa-pen text-xs text-slate-500"></i>
+            </div>
+
+            <!-- Nav Links -->
+            <nav class="mt-6 space-y-1">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm bg-indigo-600 text-white">
+                    <i class="fa-solid fa-chart-pie w-5"></i><span>Genel Bakış</span>
+                </button>
+                <button onclick="switchTab('new-lesson')" id="nav-new-lesson" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-plus-circle w-5"></i><span id="navLessonTitle">Yeni Ders Gir</span>
+                </button>
+                <button onclick="switchTab('students')" id="nav-students" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-user-graduate w-5"></i><span>Öğrencilerim</span>
+                </button>
+                <button onclick="switchTab('reports')" id="nav-reports" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-paper-plane w-5"></i><span>Veli Bültenleri</span>
+                </button>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full overflow-y-auto">
+
+        <!-- 1. DASHBOARD TAB -->
+        <section id="tab-dashboard" class="tab-content space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">Hoş Geldiniz 👋</h2>
+                    <p class="text-slate-500 text-sm">Derslerinizi, zamanlanmış hatırlatmalarınızı ve bültenlerinizi yönetin.</p>
+                </div>
+                <button onclick="resetLessonForm(); switchTab('new-lesson')" class="px-4 py-2 bg-indigo-600 text-white font-medium text-sm rounded-xl shadow hover:bg-indigo-700 transition">Yeni Ders Kaydet</button>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl"><i class="fa-solid fa-users"></i></div>
+                    <div><p class="text-xs text-slate-500 font-medium">Kayıtlı Öğrenci</p><h3 id="statStudentCount" class="text-2xl font-bold text-slate-900">0</h3></div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl"><i class="fa-solid fa-book-open"></i></div>
+                    <div><p class="text-xs text-slate-500 font-medium">Toplam Ders</p><h3 id="statLessonCount" class="text-2xl font-bold text-slate-900">0</h3></div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl"><i class="fa-solid fa-bell"></i></div>
+                    <div><p class="text-xs text-slate-500 font-medium">Bekleyen Hatırlatma</p><h3 id="statReminderCount" class="text-2xl font-bold text-slate-900">0</h3></div>
+                </div>
+            </div>
+
+            <!-- Recent Lessons -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-sm">
+                <h3 class="font-bold text-slate-900 text-lg flex items-center space-x-2">
+                    <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
+                    <span>Son İşlenen Dersler</span>
+                </h3>
+                <div id="recentLessonsList" class="space-y-3"></div>
+            </div>
+        </section>
+
+        <!-- 2. NEW / EDIT LESSON TAB -->
+        <section id="tab-new-lesson" class="tab-content hidden space-y-6">
+            <div class="flex justify-between items-center">
+                <h2 id="formHeaderTitle" class="text-2xl font-bold text-slate-900">Ders ve Ödev Kaydı Gir</h2>
+                <button type="button" onclick="resetLessonForm()" id="cancelEditBtn" class="hidden text-xs text-rose-600 font-semibold border border-rose-200 px-3 py-1.5 rounded-lg hover:bg-rose-50">Düzenlemeyi İptal Et</button>
+            </div>
+
+            <form id="lessonForm" onsubmit="handleLessonSubmit(event)" class="bg-white rounded-2xl border border-slate-200 p-6 space-y-6 shadow-sm">
+                <input type="hidden" id="editingLessonId" value="">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-2">Öğrenci Seçin *</label>
+                        <select id="lessonStudentId" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-2">Ders Tarihi *</label>
+                        <input type="date" id="lessonDate" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-2">İşlenen Konular & İçerik *</label>
+                    <textarea id="lessonSubject" rows="3" required placeholder="Örn: Kareköklü İfadeler konusu tamamlandı." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-2">Verilen Ödevler</label>
+                    <textarea id="lessonHomework" rows="3" placeholder="Örn: Soru Bankası Sayfa 40-48 arası çözülecek." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm"></textarea>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-2">Öğrenci Performansı</label>
+                        <select id="lessonRating" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                            <option value="5">⭐⭐⭐⭐⭐ Mükemmel (Anlama & Odak Çok Yüksek)</option>
+                            <option value="4">⭐⭐⭐⭐ Çok İyi (Konu Kavrandı)</option>
+                            <option value="3">⭐⭐⭐ Orta (Tekrar Edilmeli)</option>
+                            <option value="2">⭐⭐ Geliştirilmeli</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-2">Bir Sonraki Ders Tarihi</label>
+                        <input type="date" id="nextLessonDate" onchange="calculateReminderTime()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <p id="reminderTimeHint" class="text-[11px] text-amber-600 mt-1 hidden font-medium"></p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row justify-end items-center gap-3 pt-4 border-t border-slate-100">
+                    <button type="submit" onclick="setSubmitType('save_only')" class="w-full sm:w-auto px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm rounded-xl transition">Yalnızca Kaydet</button>
+                    <button type="submit" onclick="setSubmitType('save_and_send')" id="submitBtnText" class="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-xl shadow transition">Kaydet ve Bülten Gönder</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- 3. STUDENTS TAB -->
+        <section id="tab-students" class="tab-content hidden space-y-6">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-4">
+                <h2 class="text-2xl font-bold text-slate-900">Öğrencilerim</h2>
+                <button onclick="openStudentModal()" class="px-4 py-2.5 bg-indigo-600 text-white font-medium text-sm rounded-xl shadow hover:bg-indigo-700 transition">Yeni Öğrenci Ekle</button>
+            </div>
+            <div id="studentGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- 4. BULLETIN TAB -->
+        <section id="tab-reports" class="tab-content hidden space-y-6">
+            <div class="border-b border-slate-200 pb-4">
+                <h2 class="text-2xl font-bold text-slate-900">Veli Bülten Hazırlayıcı</h2>
+                <p class="text-slate-500 text-sm">Ders özet bülteni veya dersten 1 gün önce öğleden sonra gidecek hatırlatma bültenini seçin.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Lesson Selector -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-sm">
+                    <h3 class="font-bold text-slate-800 text-sm uppercase">1. Ders Kaydı Seçin</h3>
+                    <div id="bulletinLessonSelector" class="space-y-2 max-h-[450px] overflow-y-auto pr-1"></div>
+                </div>
+
+                <!-- Bulletin Customizer -->
+                <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 space-y-6 shadow-sm">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4">
+                        <div class="flex items-center space-x-2 bg-slate-100 p-1 rounded-xl">
+                            <button onclick="setBulletinType('summary')" id="type-summary" class="b-type-btn text-xs font-semibold px-3 py-1.5 rounded-lg bg-white shadow-sm text-indigo-600">Ders Özeti Bülteni</button>
+                            <button onclick="setBulletinType('reminder')" id="type-reminder" class="b-type-btn text-xs font-semibold px-3 py-1.5 rounded-lg text-slate-600">🔔 Hatırlatma Bülteni (1 Gün Önce 15:00)</button>
+                        </div>
+
+                        <!-- Closing Phrase Options -->
+                        <div class="flex items-center space-x-2">
+                            <select id="closingPhraseSelect" onchange="generateBulletinText()" class="text-xs bg-slate-100 border border-slate-200 rounded-lg p-1.5 text-slate-700 font-medium">
+                                <option value="İyi günler dileriz.">☀️ İyi günler dileriz.</option>
+                                <option value="İyi akşamlar dileriz.">🌙 İyi akşamlar dileriz.</option>
+                                <option value="İyi çalışmalar dileriz.">🌟 İyi çalışmalar dileriz.</option>
+                                <option value="Saygılarımızla.">🤝 Saygılarımızla.</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <textarea id="bulletinTextPreview" rows="10" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm text-slate-800 leading-relaxed focus:ring-2 focus:ring-indigo-500 transition"></textarea>
+
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button onclick="sendWhatsApp()" class="flex-1 min-w-[180px] px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm rounded-xl shadow transition flex items-center justify-center space-x-2">
+                            <i class="fa-brands fa-whatsapp text-lg"></i>
+                            <span id="sendWhatsAppBtnText">WhatsApp ile Gönder</span>
+                        </button>
+                        <button onclick="copyToClipboard()" class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm rounded-xl transition flex items-center space-x-2">
+                            <i class="fa-regular fa-copy"></i>
+                            <span>Kopyala</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODALS -->
+    <div id="profileModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <h3 class="font-bold text-slate-900 text-lg">Öğretmen Profil Ayarları</h3>
+            <form onsubmit="saveProfile(event)" class="space-y-3">
+                <input type="text" id="profName" required placeholder="Adınız Soyadınız" class="w-full px-4 py-2 bg-slate-50 border rounded-xl text-sm">
+                <input type="text" id="profBranch" required placeholder="Branşınız (Örn: Matematik Öğretmeni)" class="w-full px-4 py-2 bg-slate-50 border rounded-xl text-sm">
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" onclick="closeProfileModal()" class="px-4 py-2 bg-slate-100 text-slate-600 text-sm rounded-xl">İptal</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 text-white text-sm rounded-xl shadow">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="studentModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <h3 class="font-bold text-slate-900 text-lg">Yeni Öğrenci Ekle</h3>
+            <form onsubmit="saveStudent(event)" class="space-y-3">
+                <input type="text" id="stdName" required placeholder="Öğrenci Adı Soyadı" class="w-full px-4 py-2 bg-slate-50 border rounded-xl text-sm">
+                <input type="text" id="stdGrade" required placeholder="Sınıf / Seviye" class="w-full px-4 py-2 bg-slate-50 border rounded-xl text-sm">
+                <input type="text" id="stdParentName" placeholder="Veli Adı Soyadı" class="w-full px-4 py-2 bg-slate-50 border rounded-xl text-sm">
+                <input type="tel" id="stdParentPhone" required placeholder="Veli WhatsApp Telefonu" class="w-full px-4 py-2 bg-slate-50 border rounded-xl text-sm">
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" onclick="closeStudentModal()" class="px-4 py-2 bg-slate-100 text-slate-600 text-sm rounded-xl">İptal</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 text-white text-sm rounded-xl shadow">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        let students = JSON.parse(localStorage.getItem('dt_students')) || [
+            { id: 1, name: "Enes Malik", grade: "8. Sınıf (LGS)", parentName: "Ayşe Hanım", parentPhone: "05550000000" }
+        ];
+
+        let lessons = JSON.parse(localStorage.getItem('dt_lessons')) || [
+            { id: 101, studentId: 1, date: "2026-10-14", subject: "Kareköklü İfadeler ve Gerçek Sayılar", homework: "Soru Bankası Sayfa 40-48 arası çözülecek.", rating: "5", nextDate: "2026-10-21" }
+        ];
+
+        let teacherProfile = JSON.parse(localStorage.getItem('dt_teacher')) || {
+            name: "Zeynep Esra Arıkan",
+            branch: "Matematik"
+        };
+
+        let selectedLessonForBulletin = null;
+        let activeBulletinType = 'summary'; // 'summary' or 'reminder'
+        let submitType = 'save_and_send';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTeacherProfileUI();
+            renderDashboardStats();
+            renderRecentLessons();
+            populateStudentDropdown();
+            renderStudentsGrid();
+            renderBulletinLessonSelector();
+            document.getElementById('lessonDate').valueAsDate = new Date();
+        });
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+        }
+
+        function openProfileModal() {
+            document.getElementById('profName').value = teacherProfile.name || '';
+            document.getElementById('profBranch').value = teacherProfile.branch || '';
+            document.getElementById('profileModal').classList.remove('hidden');
+        }
+        function closeProfileModal() { document.getElementById('profileModal').classList.add('hidden'); }
+        function saveProfile(e) {
+            e.preventDefault();
+            teacherProfile = { name: document.getElementById('profName').value, branch: document.getElementById('profBranch').value };
+            localStorage.setItem('dt_teacher', JSON.stringify(teacherProfile));
+            updateTeacherProfileUI();
+            closeProfileModal();
+            if (selectedLessonForBulletin) generateBulletinText();
+        }
+        function updateTeacherProfileUI() {
+            document.getElementById('sidebarTeacherName').innerText = teacherProfile.name || 'Öğretmen Profilim';
+            document.getElementById('sidebarTeacherBranch').innerText = teacherProfile.branch || '';
+        }
+
+        function openStudentModal() { document.getElementById('studentModal').classList.remove('hidden'); }
+        function closeStudentModal() { document.getElementById('studentModal').classList.add('hidden'); }
+        function saveStudent(e) {
+            e.preventDefault();
+            students.push({
+                id: Date.now(),
+                name: document.getElementById('stdName').value,
+                grade: document.getElementById('stdGrade').value,
+                parentName: document.getElementById('stdParentName').value,
+                parentPhone: document.getElementById('stdParentPhone').value
+            });
+            localStorage.setItem('dt_students', JSON.stringify(students));
+            populateStudentDropdown();
+            renderStudentsGrid();
+            renderDashboardStats();
+            closeStudentModal();
+        }
+
+        function populateStudentDropdown() {
+            const select = document.getElementById('lessonStudentId');
+            select.innerHTML = '<option value="">-- Öğrenci Seçin --</option>';
+            students.forEach(s => select.innerHTML += `<option value="${s.id}">${s.name} (${s.grade})</option>`);
+        }
+
+        function renderStudentsGrid() {
+            const grid = document.getElementById('studentGrid'); grid.innerHTML = '';
+            students.forEach(s => {
+                grid.innerHTML += `
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-slate-900">${s.name}</h4>
+                            <span class="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg font-semibold">${s.grade}</span>
+                        </div>
+                        <p class="text-xs text-slate-500"><i class="fa-solid fa-user-tie w-4"></i> Veli: ${s.parentName || '-'}</p>
+                        <p class="text-xs text-slate-500"><i class="fa-solid fa-phone w-4"></i> Tel: ${s.parentPhone}</p>
+                    </div>`;
+            });
+        }
+
+        function calculateReminderTime() {
+            const nextDateVal = document.getElementById('nextLessonDate').value;
+            const hint = document.getElementById('reminderTimeHint');
+            if (nextDateVal) {
+                const d = new Date(nextDateVal);
+                d.setDate(d.getDate() - 1);
+                const dayStr = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+                hint.innerText = `⏰ Hatırlatmanız dersten 1 gün önce (${dayStr}) saat 15:00 için planlanacaktır.`;
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+
+        function setSubmitType(type) { submitType = type; }
+
+        function handleLessonSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editingLessonId').value;
+
+            const lessonObj = {
+                id: editId ? parseInt(editId) : Date.now(),
+                studentId: parseInt(document.getElementById('lessonStudentId').value),
+                date: document.getElementById('lessonDate').value,
+                subject: document.getElementById('lessonSubject').value,
+                homework: document.getElementById('lessonHomework').value,
+                rating: document.getElementById('lessonRating').value,
+                nextDate: document.getElementById('nextLessonDate').value
+            };
+
+            if (editId) {
+                const index = lessons.findIndex(l => l.id == editId);
+                if (index !== -1) lessons[index] = lessonObj;
+            } else {
+                lessons.unshift(lessonObj);
+            }
+
+            localStorage.setItem('dt_lessons', JSON.stringify(lessons));
+            renderDashboardStats();
+            renderRecentLessons();
+            renderBulletinLessonSelector();
+            resetLessonForm();
+
+            if (submitType === 'save_and_send') {
+                selectedLessonForBulletin = lessons[0];
+                switchTab('reports');
+                setBulletinType('summary');
+            } else {
+                alert(editId ? 'Ders kaydı güncellendi.' : 'Ders kaydı eklendi.');
+                switchTab('dashboard');
+            }
+        }
+
+        function editLesson(id) {
+            const l = lessons.find(item => item.id == id);
+            if (!l) return;
+
+            document.getElementById('editingLessonId').value = l.id;
+            document.getElementById('lessonStudentId').value = l.studentId;
+            document.getElementById('lessonDate').value = l.date;
+            document.getElementById('lessonSubject').value = l.subject;
+            document.getElementById('lessonHomework').value = l.homework;
+            document.getElementById('lessonRating').value = l.rating;
+            document.getElementById('nextLessonDate').value = l.nextDate || '';
+            calculateReminderTime();
+
+            document.getElementById('formHeaderTitle').innerText = "Ders Kaydını Düzenle";
+            document.getElementById('submitBtnText').innerText = "Güncelle ve Bülten Oluştur";
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+
+            switchTab('new-lesson');
+        }
+
+        function resetLessonForm() {
+            document.getElementById('lessonForm').reset();
+            document.getElementById('editingLessonId').value = '';
+            document.getElementById('formHeaderTitle').innerText = "Ders ve Ödev Kaydı Gir";
+            document.getElementById('submitBtnText').innerText = "Kaydet ve Bülten Gönder";
+            document.getElementById('cancelEditBtn').classList.add('hidden');
+            document.getElementById('reminderTimeHint').classList.add('hidden');
+            document.getElementById('lessonDate').valueAsDate = new Date();
+        }
+
+        function renderDashboardStats() {
+            document.getElementById('statStudentCount').innerText = students.length;
+            document.getElementById('statLessonCount').innerText = lessons.length;
+            const reminderCount = lessons.filter(l => l.nextDate).length;
+            document.getElementById('statReminderCount').innerText = reminderCount;
+        }
+
+        function renderRecentLessons() {
+            const list = document.getElementById('recentLessonsList'); list.innerHTML = '';
+            lessons.slice(0, 5).forEach(l => {
+                const std = students.find(s => s.id == l.studentId);
+                list.innerHTML += `
+                    <div class="p-3.5 bg-slate-50 rounded-xl flex justify-between items-center border border-slate-100">
+                        <div>
+                            <p class="text-sm font-semibold text-slate-900">${std ? std.name : 'Öğrenci'} (${l.date})</p>
+                            <p class="text-xs text-slate-500 line-clamp-1">${l.subject}</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="editLesson(${l.id})" class="px-2.5 py-1.5 bg-amber-50 text-amber-700 font-medium text-xs rounded-lg hover:bg-amber-100"><i class="fa-solid fa-pen"></i> Düzenle</button>
+                            <button onclick="selectLessonAndGoToBulletin(${l.id}, 'summary')" class="px-3 py-1.5 bg-indigo-50 text-indigo-600 font-medium text-xs rounded-lg hover:bg-indigo-100">Bülten Yap</button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderBulletinLessonSelector() {
+            const container = document.getElementById('bulletinLessonSelector'); container.innerHTML = '';
+            lessons.forEach(l => {
+                const std = students.find(s => s.id == l.studentId);
+                container.innerHTML += `
+                    <div onclick="selectLessonForBulletin(${l.id})" class="p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200 rounded-xl cursor-pointer transition text-xs font-semibold flex justify-between items-center">
+                        <div><p class="text-slate-900">${std ? std.name : 'Öğrenci'}</p><p class="text-[11px] text-slate-500 font-normal">${l.date}</p></div>
+                        <i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>
+                    </div>`;
+            });
+        }
+
+        function selectLessonForBulletin(id) { selectedLessonForBulletin = lessons.find(l => l.id == id); generateBulletinText(); }
+        function selectLessonAndGoToBulletin(id, type) { selectedLessonForBulletin = lessons.find(l => l.id == id); switchTab('reports'); setBulletinType(type); }
+
+        function setBulletinType(type) {
+            activeBulletinType = type;
+            document.querySelectorAll('.b-type-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'shadow-sm', 'text-indigo-600');
+                btn.classList.add('text-slate-600');
+            });
+            document.getElementById('type-' + type).classList.add('bg-white', 'shadow-sm', 'text-indigo-600');
+            generateBulletinText();
+        }
+
+        function generateBulletinText() {
+            if (!selectedLessonForBulletin) return;
+            const l = selectedLessonForBulletin;
+            const std = students.find(s => s.id == l.studentId) || { name: "Öğrenci", parentName: "Veli" };
+            const branch = teacherProfile.branch || "Matematik";
+            const closingPhrase = document.getElementById('closingPhraseSelect').value;
+
+            if (activeBulletinType === 'summary') {
+                // Ders Özeti Bülteni (Gelecek ders tarihi kaldırıldı)
+                document.getElementById('bulletinTextPreview').value = 
+                    `Merhaba ${std.parentName || 'Sayın Velim'},\n\n` +
+                    `${std.name} ile yaptığımız dersin özeti aşağıdadır:\n\n` +
+                    `📌 *İşlenen Konular:* ${l.subject}\n` +
+                    `✏️ *Verilen Ödevler:* ${l.homework || 'Yok'}\n\n` +
+                    `${closingPhrase}`;
+            } else {
+                // Dersten 1 Gün Önce Öğleden Sonra Gidecek Özel Hatırlatma Bülteni
+                document.getElementById('bulletinTextPreview').value = 
+                    `Merhaba ${std.parentName || 'Sayın Velim'},\n\n` +
+                    `Yarın ${std.name} ile ${branch} dersimiz vardır. Bilginize sunar, ${closingPhrase.toLowerCase()}`;
+            }
+        }
+
+        function sendWhatsApp() {
+            if (!selectedLessonForBulletin) return;
+            const std = students.find(s => s.id == selectedLessonForBulletin.studentId);
+            if (!std || !std.parentPhone) { alert("Veli telefon numarası bulunamadı."); return; }
+            const phone = std.parentPhone.replace(/[^0-9]/g, '');
+            const text = encodeURIComponent(document.getElementById('bulletinTextPreview').value);
+            window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+        }
+
+        function copyToClipboard() {
+            const textarea = document.getElementById('bulletinTextPreview');
+            textarea.select();
+            document.execCommand('copy');
+            alert('Bülten metni kopyalandı.');
+        }
+    </script>
+</body>
+</html>
