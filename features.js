@@ -644,3 +644,68 @@
     window.generateBulletinText = corrected;
 })();
 
+
+/* Kapanış ifadelerini ve ders tarihini düzenle */
+(function () {
+    'use strict';
+
+    const kapanis = document.getElementById('closingPhraseSelect');
+
+    if (kapanis) {
+        const ifadeler = [
+            ['İyi günler dilerim.', '☀️ İyi günler dilerim.'],
+            ['İyi akşamlar dilerim.', '🌙 İyi akşamlar dilerim.'],
+            ['İyi çalışmalar dilerim.', '🌟 İyi çalışmalar dilerim.'],
+            ['Saygılarımla.', '🤝 Saygılarımla.']
+        ];
+
+        ifadeler.forEach(function (ifade, index) {
+            if (kapanis.options[index]) {
+                kapanis.options[index].value = ifade[0];
+                kapanis.options[index].textContent = ifade[1];
+            }
+        });
+
+        kapanis.selectedIndex = 0;
+    }
+
+    const oncekiOlustur = window.generateBulletinText;
+
+    if (typeof oncekiOlustur !== 'function' ||
+        oncekiOlustur._tarihVeKapanisDuzenlendi) {
+        return;
+    }
+
+    function duzenlenmisBulten() {
+        oncekiOlustur.apply(this, arguments);
+
+        const alan = document.getElementById('bulletinTextPreview');
+        const ders = window.selectedLessonForBulletin ||
+            (typeof selectedLessonForBulletin !== 'undefined'
+                ? selectedLessonForBulletin : null);
+
+        if (!alan || !ders || !ders.date) return;
+
+        const parcalar = ders.date.split('-');
+        if (parcalar.length !== 3) return;
+
+        const tarih = parcalar[2] + '.' +
+            parcalar[1] + '.' + parcalar[0];
+
+        if (typeof activeBulletinType !== 'undefined' &&
+            activeBulletinType === 'summary') {
+            alan.value = alan.value.replace(
+                /ile yaptığımız dersin özeti aşağıdadır:/,
+                'tarihinde yapmış olduğumuz derste işlediğimiz konular ve ödev bilgileri aşağıdadır:'
+            );
+
+            alan.value = alan.value.replace(
+                'tarihinde yapmış olduğumuz derste',
+                tarih + ' tarihinde yapmış olduğumuz derste'
+            );
+        }
+    }
+
+    duzenlenmisBulten._tarihVeKapanisDuzenlendi = true;
+    window.generateBulletinText = duzenlenmisBulten;
+})();
