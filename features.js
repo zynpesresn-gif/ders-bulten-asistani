@@ -622,3 +622,25 @@
     }
 })();
 
+/* Hatırlatma metnindeki branş ifadesini düzelt */
+(function () {
+    const original = window.generateBulletinText;
+    if (typeof original !== 'function') return;
+
+    function corrected() {
+        const result = original.apply(this, arguments);
+        const area = document.getElementById('bulletinTextPreview');
+
+        if (area && area.value) {
+            area.value = area.value
+                .replace(/matematik\s+öğretmeni\s+dersimiz/gi, 'matematik dersimiz')
+                .replace(/matematik\s+öğretmeni\s+dersi/gi, 'matematik dersi')
+                .replace(/\bMatematik Öğretmeni\b/g, 'matematik');
+        }
+
+        return result;
+    }
+
+    window.generateBulletinText = corrected;
+})();
+
