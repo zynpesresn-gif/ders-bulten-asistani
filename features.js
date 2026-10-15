@@ -432,11 +432,11 @@
             ctx.fillStyle = '#705486';
             ctx.font = 'bold 30px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('ÖZEL DERS • VELİ BÜLTENİ', width / 2, 80);
+            ctx.fillText('DERSİMİZDEN NOTLAR', width / 2, 80);
 
             ctx.fillStyle = '#776a80';
             ctx.font = '18px Arial';
-            ctx.fillText('Öğrenme yolculuğundan küçük bir not', width / 2, 112);
+            ctx.fillText('Her ders yeni bir adım, her adım yeni bir keşif.', width / 2, 112);
 
             ctx.textAlign = 'left';
             ctx.fillStyle = '#393344';
