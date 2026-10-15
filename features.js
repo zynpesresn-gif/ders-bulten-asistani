@@ -709,3 +709,39 @@
     duzenlenmisBulten._tarihVeKapanisDuzenlendi = true;
     window.generateBulletinText = duzenlenmisBulten;
 })();
+
+/* Dersimizden Notlar tasarım başlıkları */
+(function () {
+    'use strict';
+
+    function basliklariDuzenle() {
+        const eskiBasliklar = document.querySelectorAll(
+            'h1, h2, h3, p, div, span'
+        );
+
+        eskiBasliklar.forEach(function (alan) {
+            if (alan.children.length > 0) return;
+
+            const yazi = (alan.textContent || '').trim();
+
+            if (yazi === 'ÖZEL DERS • VELİ BÜLTENİ') {
+                alan.textContent = 'Dersimizden Notlar';
+            }
+
+            if (yazi === 'Öğrenme yolculuğundan küçük bir not') {
+                alan.textContent =
+                    'Her ders yeni bir adım, her adım yeni bir keşif.';
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener(
+            'DOMContentLoaded',
+            basliklariDuzenle
+        );
+    } else {
+        basliklariDuzenle();
+    }
+})();
+
