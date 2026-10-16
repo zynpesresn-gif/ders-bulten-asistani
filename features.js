@@ -706,129 +706,196 @@ body {
         return area ? area.value.trim() : '';
     }
 
-    function createPastelImage() {
-        return new Promise(function (resolve, reject) {
-            const text = getBulletinText();
-            if (!text) {
-                alert('Önce bülteni oluşturun.');
-                reject(new Error('Bülten boş.'));
+
+
+function createPastelImage() {
+    return new Promise(function (resolve, reject) {
+        const text = getBulletinText();
+
+        if (!text) {
+            alert('Önce bülteni oluşturun.');
+            reject(new Error('Bülten boş.'));
+            return;
+        }
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const width = 1000;
+        const margin = 76;
+        const contentWidth = width - margin * 2;
+        const lineHeight = 43;
+        const cleanText = text.replace(/\*/g, '');
+        const paragraphs = cleanText.split('\n');
+        const lines = [];
+
+        ctx.font = '27px Arial';
+
+        paragraphs.forEach(function (paragraph) {
+            if (!paragraph.trim()) {
+                lines.push('');
                 return;
             }
 
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const width = 900;
-            const margin = 64;
-            const contentWidth = width - margin * 2;
-            const cleanText = text.replace(/\*/g, '');
-            const paragraphs = cleanText.split('\n');
-            const lines = [];
+            let line = '';
 
-            ctx.font = '25px Arial';
+            paragraph.split(/\s+/).forEach(function (word) {
+                const test = line ? line + ' ' + word : word;
 
-            paragraphs.forEach(function (paragraph) {
-                if (!paragraph.trim()) {
-                    lines.push('');
-                    return;
+                if (ctx.measureText(test).width > contentWidth && line) {
+                    lines.push(line);
+                    line = word;
+                } else {
+                    line = test;
                 }
-
-                let line = '';
-                paragraph.split(/\s+/).forEach(function (word) {
-                    const test = line ? line + ' ' + word : word;
-
-                    if (ctx.measureText(test).width > contentWidth && line) {
-                        lines.push(line);
-                        line = word;
-                    } else {
-                        line = test;
-                    }
-                });
-
-                if (line) lines.push(line);
             });
 
-            const lineHeight = 39;
-            const headerHeight = 125;
-            const footerHeight = 100;
-            canvas.width = width;
-            canvas.height = Math.max(
-                520,
-                headerHeight + lines.length * lineHeight + footerHeight + 70
-            );
-
-            const roundRect = function (x, y, w, h, r) {
-                ctx.beginPath();
-                ctx.roundRect(x, y, w, h, r);
-            };
-
-            ctx.fillStyle = '#f2edf7';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = '#dceee8';
-            ctx.beginPath();
-            ctx.arc(820, 60, 105, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = '#f4e2e8';
-            ctx.beginPath();
-            ctx.arc(65, canvas.height - 40, 100, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = '#fffdf9';
-            roundRect(28, 28, width - 56, canvas.height - 56, 28);
-            ctx.fill();
-
-            ctx.fillStyle = '#e9def3';
-            roundRect(28, 28, width - 56, headerHeight, 28);
-            ctx.fill();
-
-            ctx.fillStyle = '#705486';
-            ctx.font = 'bold 30px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('DERSİMİZDEN NOTLAR', width / 2, 80);
-
-            ctx.fillStyle = '#776a80';
-            ctx.font = '18px Arial';
-            ctx.fillText('Her ders yeni bir adım, her adım yeni bir keşif.', width / 2, 112);
-
-            ctx.textAlign = 'left';
-            ctx.fillStyle = '#393344';
-            ctx.font = '25px Arial';
-
-            let y = headerHeight + 48;
-
-            lines.forEach(function (line) {
-                if (!line) {
-                    y += 17;
-                    return;
-                }
-
-                ctx.fillText(line, margin, y);
-                y += lineHeight;
-            });
-
-            ctx.strokeStyle = '#e5d9ed';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(margin, canvas.height - footerHeight);
-            ctx.lineTo(width - margin, canvas.height - footerHeight);
-            ctx.stroke();
-
-            ctx.textAlign = 'center';
-            ctx.fillStyle = '#705486';
-            ctx.font = 'bold 25px Arial';
-            ctx.fillText(
-                'Sevgiyle, Zeynep Esra Hoca',
-                width / 2,
-                canvas.height - 65
-            );
-
-            canvas.toBlob(function (blob) {
-                if (blob) resolve(blob);
-                else reject(new Error('Görsel oluşturulamadı.'));
-            }, 'image/png');
+            if (line) lines.push(line);
         });
-    }
+
+        const headerHeight = 240;
+        const footerHeight = 150;
+        const contentHeight = Math.max(300, lines.length * lineHeight + 70);
+
+        canvas.width = width;
+        canvas.height = headerHeight + contentHeight + footerHeight;
+
+        const gradient = ctx.createLinearGradient(0, 0, width, canvas.height);
+        gradient.addColorStop(0, '#FAF6F0');
+        gradient.addColorStop(0.5, '#FFFDF9');
+        gradient.addColorStop(1, '#F2D6D8');
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, canvas.height);
+
+        // Yumuşak pastel, ebruli hissi veren renk geçişleri
+        function softCircle(x, y, radius, color) {
+            const g = ctx.createRadialGradient(x, y, 5, x, y, radius);
+            g.addColorStop(0, color);
+            g.addColorStop(1, 'rgba(255,255,255,0)');
+
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        softCircle(80, 90, 190, 'rgba(230,184,194,0.48)');
+        softCircle(900, 140, 210, 'rgba(138,118,166,0.30)');
+        softCircle(120, canvas.height - 100, 220, 'rgba(242,214,216,0.55)');
+        softCircle(920, canvas.height - 180, 220, 'rgba(230,184,194,0.35)');
+
+        // İnce, zarif çerçeve
+        ctx.strokeStyle = '#E8D8DC';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(28, 28, width - 56, canvas.height - 56, 24);
+        ctx.stroke();
+
+        // ZEA monogramı
+        ctx.beginPath();
+        ctx.arc(112, 112, 48, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(242,214,216,0.45)';
+        ctx.fill();
+        ctx.strokeStyle = '#E6B8C2';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 29px Georgia';
+        ctx.fillStyle = '#5E4B75';
+        ctx.fillText('ZEA', 112, 112);
+
+        // Başlık
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+        ctx.font = 'bold 19px Arial';
+        ctx.fillStyle = '#8A76A6';
+        ctx.fillText('ZEYNEP ESRA ARIKAN', 190, 88);
+
+        ctx.font = '48px Georgia';
+        ctx.fillStyle = '#5E4B75';
+        ctx.fillText('Dersimizden Notlar', 190, 145);
+
+        ctx.font = 'italic 22px Georgia';
+        ctx.fillStyle = '#8C7882';
+        ctx.fillText(
+            'Her ders yeni bir adım, her adım yeni bir keşif',
+            190,
+            185
+        );
+
+        // Başlık altı dekoratif çizgi
+        const lineGradient = ctx.createLinearGradient(margin, 0, width - margin, 0);
+        lineGradient.addColorStop(0, '#E6B8C2');
+        lineGradient.addColorStop(0.5, '#8A76A6');
+        lineGradient.addColorStop(1, '#E6B8C2');
+
+        ctx.strokeStyle = lineGradient;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(margin, headerHeight - 15);
+        ctx.lineTo(width - margin, headerHeight - 15);
+        ctx.stroke();
+
+        // Bülten metni
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+        ctx.font = '27px Arial';
+        ctx.fillStyle = '#4A3E3D';
+
+        let y = headerHeight + 45;
+
+        lines.forEach(function (line) {
+            if (!line) {
+                y += 18;
+                return;
+            }
+
+            ctx.fillText(line, margin, y);
+            y += lineHeight;
+        });
+
+        // İmza alanı
+        const footerY = canvas.height - footerHeight + 15;
+
+        ctx.strokeStyle = '#E8D8DC';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(margin, footerY);
+        ctx.lineTo(width - margin, footerY);
+        ctx.stroke();
+
+        ctx.textAlign = 'right';
+        ctx.font = '20px Arial';
+        ctx.fillStyle = '#8C7882';
+        ctx.fillText('Matematik Öğretmeni', width - margin, footerY + 45);
+
+        ctx.font = '30px Georgia';
+        ctx.fillStyle = '#5E4B75';
+        ctx.fillText('Zeynep Esra Arikan', width - margin, footerY + 85);
+
+        ctx.textAlign = 'center';
+        ctx.font = '16px Arial';
+        ctx.fillStyle = '#8A76A6';
+        ctx.fillText(
+            'ZEA  ·  DERSİMİZDEN NOTLAR',
+            width / 2,
+            canvas.height - 35
+        );
+
+        canvas.toBlob(function (blob) {
+            if (blob) {
+                resolve(blob);
+            } else {
+                reject(new Error('Görsel oluşturulamadı.'));
+            }
+        }, 'image/png');
+    });
+}
+
+            
 
     function installFeatures() {
         const area = document.getElementById('bulletinTextPreview');
