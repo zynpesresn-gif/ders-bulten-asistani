@@ -18,7 +18,7 @@
        
 
 
-Pdf.onclick = function () {
+pdf.onclick = function () {
     const metin = alan.value.trim();
 
     if (!metin) {
