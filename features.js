@@ -15,40 +15,164 @@
         pdf.textContent = '📄 PDF olarak kaydet';
         pdf.className =
             'px-4 py-3 rounded-xl bg-indigo-600 text-white text-sm';
-        pdf.onclick = function () {
-            const metin = alan.value.trim();
-            if (!metin) {
-                alert('Önce bülten metnini oluşturun.');
-                return;
-            }
+       
+pdf.onclick = function () {
+    const metin = alan.value.trim();
 
-            const pencere = window.open('', '_blank');
-            if (!pencere) {
-                alert('Yeni pencere açılamadı. Tarayıcı izinlerini kontrol edin.');
-                return;
-            }
+    if (!metin) {
+        alert('Önce bülten metnini oluşturun.');
+        return;
+    }
 
-            const govde = document.createElement('pre');
-            govde.textContent = metin;
-            govde.style.cssText =
-                'white-space:pre-wrap;font:16px Arial;line-height:1.8;' +
-                'overflow-wrap:break-word;';
+    const pencere = window.open('', '_blank');
 
-            pencere.document.title = 'Veli Bülteni';
-            pencere.document.body.style.cssText =
-                'font-family:Arial,sans-serif;padding:35px;color:#26334a;';
-            pencere.document.body.appendChild(govde);
+    if (!pencere) {
+        alert('Yeni pencere açılamadı. Tarayıcı izinlerini kontrol edin.');
+        return;
+    }
 
-            const stil = pencere.document.createElement('style');
-            stil.textContent =
-                '@media print { body { padding: 15mm !important; } }';
-            pencere.document.head.appendChild(stil);
+    const guvenliMetin = metin.replace(/[&<>"']/g, function (karakter) {
+        return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[karakter];
+    });
 
-            pencere.focus();
-            setTimeout(function () {
-                pencere.print();
-            }, 300);
-        };
+    pencere.document.open();
+    pencere.document.write(`
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dersimizden Notlar</title>
+
+<style>
+@page {
+    size: A4;
+    margin: 0;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 16mm;
+    font-family: Georgia, serif;
+    color: #51433f;
+    background-color: #fffaf5;
+    background-image:
+        radial-gradient(ellipse at 0% 0%,
+            #ead0d1 0%, transparent 32%),
+        radial-gradient(ellipse at 100% 12%,
+            #eadcc9 0%, transparent 28%),
+        radial-gradient(ellipse at 0% 100%,
+            #e5c6c8 0%, transparent 30%),
+        radial-gradient(ellipse at 100% 100%,
+            #e7d7c4 0%, transparent 32%);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+.sayfa {
+    min-height: 265mm;
+    border: 1px solid #d8b9b7;
+    padding: 18mm 13mm;
+    position: relative;
+    background:
+        radial-gradient(ellipse at 0% 25%,
+            #f0dfd7 0%, transparent 15%),
+        radial-gradient(ellipse at 100% 65%,
+            #ead8d4 0%, transparent 16%),
+        rgba(255, 252, 248, 0.86);
+}
+
+.baslik {
+    text-align: center;
+    font-family: "Segoe Print", "Comic Sans MS",
+        cursive;
+    font-size: 27pt;
+    font-weight: normal;
+    color: #805c68;
+    margin: 0 0 8px;
+}
+
+.alt-baslik {
+    text-align: center;
+    font-size: 11pt;
+    line-height: 1.6;
+    color: #8b7774;
+    margin: 0 0 24px;
+}
+
+.cizgi {
+    width: 70px;
+    height: 2px;
+    margin: 0 auto 26px;
+    background: #cba6a5;
+}
+
+.icerik {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-family: Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.8;
+    color: #403a38;
+}
+
+.imza {
+    text-align: right;
+    margin-top: 28px;
+    color: #805c68;
+    font-size: 12pt;
+    font-style: italic;
+}
+
+@media print {
+    body {
+        padding: 0;
+    }
+
+    .sayfa {
+        min-height: 265mm;
+        break-inside: avoid;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="sayfa">
+    <h1 class="baslik">Dersimizden Notlar</h1>
+    <p class="alt-baslik">
+        Her ders yeni bir adım, her adım yeni bir keşif.
+    </p>
+    <div class="cizgi"></div>
+
+    <main class="icerik">${guvenliMetin}</main>
+
+    <div class="imza">
+        Sevgiyle,<br>
+        Zeynep Esra Hoca
+    </div>
+</div>
+</body>
+</html>
+    `);
+    pencere.document.close();
+    pencere.focus();
+
+    setTimeout(function () {
+        pencere.print();
+    }, 500);
+};
+ 
 
         const gorsel = document.createElement('button');
         gorsel.type = 'button';
