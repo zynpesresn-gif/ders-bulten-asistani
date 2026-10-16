@@ -18,7 +18,7 @@
        
 pdf.onclick = function () {
     const metin = alan.value.trim();
-
+alert('Yeni PDF kodu çalışıyor!');
     if (!metin) {
         alert('Önce bülten metnini oluşturun.');
         return;
