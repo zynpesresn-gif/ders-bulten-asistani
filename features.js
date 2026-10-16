@@ -369,7 +369,7 @@ body {
             </div>
         </div>
         <div class="kimlik">
-            <p class="isim">ZEYNEP ESRA ARIKAN</p>
+
             <h1 class="baslik">Dersimizden Notlar</h1>
             <p class="alt-baslik">
                 Her ders yeni bir adım, her adım yeni bir keşif
@@ -386,7 +386,7 @@ body {
     <footer class="alt-imza">
         <div class="imza-notu">Matematik Öğretmeni</div>
         <div class="imza-isim">Zeynep Esra Arikan</div>
-        <div class="alt-marka">ZEA · DERSİMİZDEN NOTLAR</div>
+    
     </footer>
 </main>
 </body>
@@ -810,9 +810,6 @@ function createPastelImage() {
         // Başlık
         ctx.textAlign = 'left';
         ctx.textBaseline = 'alphabetic';
-        ctx.font = 'bold 19px Arial';
-        ctx.fillStyle = '#8A76A6';
-        ctx.fillText('ZEYNEP ESRA ARIKAN', 190, 88);
 
         ctx.font = '48px Georgia';
         ctx.fillStyle = '#5E4B75';
@@ -876,14 +873,7 @@ function createPastelImage() {
         ctx.fillStyle = '#5E4B75';
         ctx.fillText('Zeynep Esra Arikan', width - margin, footerY + 85);
 
-        ctx.textAlign = 'center';
-        ctx.font = '16px Arial';
-        ctx.fillStyle = '#8A76A6';
-        ctx.fillText(
-            'ZEA  ·  DERSİMİZDEN NOTLAR',
-            width / 2,
-            canvas.height - 35
-        );
+        
 
         canvas.toBlob(function (blob) {
             if (blob) {
