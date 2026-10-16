@@ -18,7 +18,7 @@
        
 
 
-pdf.onclick = function () {
+Pdf.onclick = function () {
     const metin = alan.value.trim();
 
     if (!metin) {
@@ -48,15 +48,14 @@ pdf.onclick = function () {
     const satirlar = metin.split(/\r?\n/);
     const bolumler = [];
     let aktifBolum = {
-        baslik: 'Ders Notları',
+        baslik: '',
         metin: []
     };
 
+    // "Kazanımlar" listeden çıkarıldı
     const basliklar = {
         'ders özeti': 'Ders Özeti',
         'dersin özeti': 'Ders Özeti',
-        'kazanımlar': 'Kazanımlar',
-        'kazanimlar': 'Kazanımlar',
         'çalışma önerileri': 'Çalışma Önerileri',
         'calisma onerileri': 'Çalışma Önerileri',
         'ödevler': 'Ödevler',
@@ -74,7 +73,7 @@ pdf.onclick = function () {
         if (basliklar[anahtar]) {
             if (aktifBolum.metin.some(function (s) {
                 return s.trim();
-            })) {
+            }) || aktifBolum.baslik) {
                 bolumler.push(aktifBolum);
             }
 
@@ -83,24 +82,25 @@ pdf.onclick = function () {
                 metin: []
             };
         } else {
-            aktifBolum.metin.push(satir);
+            // "kazanımlar" içeren satırları atlamak için kontrol
+            if (anahtar !== 'kazanımlar' && anahtar !== 'kazanimlar') {
+                aktifBolum.metin.push(satir);
+            }
         }
     });
 
     if (aktifBolum.metin.some(function (s) {
         return s.trim();
-    })) {
+    }) || aktifBolum.baslik) {
         bolumler.push(aktifBolum);
     }
 
-    const icerikHTML = bolumler.map(function (bolum, index) {
+    const icerikHTML = bolumler.map(function (bolum) {
+        const baslikHTML = bolum.baslik ? `<h2>${guvenliMetin(bolum.baslik)}</h2>` : '';
         return `
             <section class="icerik-bolumu">
-                <div class="bolum-etiketi">
-                    ${String(index + 1).padStart(2, '0')}
-                </div>
                 <div class="bolum-govde">
-                    <h2>${guvenliMetin(bolum.baslik)}</h2>
+                    ${baslikHTML}
                     <div class="bolum-metni">${guvenliMetin(
                         bolum.metin.join('\n').trim()
                     )}</div>
@@ -115,7 +115,7 @@ pdf.onclick = function () {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dersimizden Notlar | Zeynep Esra Arıkan</title>
+<title>Dersimizden Notlar | Zeynep Esra Arikan</title>
 <style>
 @page {
     size: A4;
@@ -123,12 +123,14 @@ pdf.onclick = function () {
 }
 
 :root {
-    --zemin: #F7F0E8;
-    --gul: #D5A4AA;
-    --vurgu: #A96F76;
-    --kahve: #51413C;
-    --ince: #E4CDC7;
-    --acik: #FFFAF5;
+    --krem-zemin: #FAF6F0;
+    --acik-krem: #FFFDF9;
+    --lila-ana: #8A76A6;
+    --lila-koyu: #5E4B75;
+    --pudra: #E6B8C2;
+    --pudra-yumusak: #F2D6D8;
+    --metin-kahve: #4A3E3D;
+    --ince-cizgi: #E8D8DC;
 }
 
 * {
@@ -142,9 +144,9 @@ html {
 
 body {
     margin: 0;
-    background: var(--zemin);
-    color: var(--kahve);
-    font-family: Arial, sans-serif;
+    background: var(--krem-zemin);
+    color: var(--metin-kahve);
+    font-family: 'Segoe UI', Arial, sans-serif;
     font-size: 10.5pt;
     line-height: 1.75;
 }
@@ -152,44 +154,82 @@ body {
 .sayfa-cercevesi {
     position: relative;
     min-height: 255mm;
-    padding: 12mm;
+    padding: 14mm 16mm;
     background:
         radial-gradient(
-            ellipse at 0% 0%,
-            rgba(213,164,170,.30),
-            transparent 34%
+            circle at 5% 5%,
+            rgba(230, 184, 194, 0.25),
+            transparent 38%
         ),
         radial-gradient(
-            ellipse at 100% 100%,
-            rgba(230,196,174,.28),
-            transparent 32%
+            circle at 95% 95%,
+            rgba(138, 118, 166, 0.18),
+            transparent 42%
         ),
-        var(--acik);
-    border: 1px solid var(--ince);
+        radial-gradient(
+            circle at 50% 50%,
+            rgba(242, 214, 216, 0.12),
+            transparent 60%
+        ),
+        var(--acik-krem);
+    border: 1px solid var(--ince-cizgi);
+    border-radius: 4px;
 }
 
 .ust-bolum {
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding-bottom: 18px;
-    border-bottom: 1px solid var(--ince);
+    gap: 18px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--ince-cizgi);
 }
 
-.monogram {
-    width: 58px;
-    height: 58px;
-    flex: 0 0 58px;
-    border: 1px solid var(--gul);
+/* İç İçe Geçen ZEA Monogram Yapısı */
+.monogram-kapsayici {
+    width: 64px;
+    height: 64px;
+    flex: 0 0 64px;
+    position: relative;
+    border: 1.5px solid var(--pudra);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--vurgu);
-    font-family: Georgia, serif;
-    font-size: 18pt;
-    letter-spacing: -2px;
-    background: rgba(213,164,170,.12);
+    background: linear-gradient(135deg, rgba(242, 214, 216, 0.4), rgba(138, 118, 166, 0.18));
+    box-shadow: inset 0 0 10px rgba(230, 184, 194, 0.25);
+    overflow: hidden;
+}
+
+.monogram-ic {
+    font-family: 'Georgia', serif;
+    font-weight: bold;
+    font-size: 16pt;
+    line-height: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.harf-z {
+    color: var(--lila-koyu);
+    transform: translateX(4px);
+    z-index: 1;
+}
+
+.harf-e {
+    color: var(--pudra);
+    font-size: 14pt;
+    margin: 0 -3px;
+    z-index: 2;
+    opacity: 0.95;
+    mix-blend-mode: multiply;
+}
+
+.harf-a {
+    color: var(--lila-ana);
+    transform: translateX(-4px);
+    z-index: 3;
 }
 
 .kimlik {
@@ -197,117 +237,103 @@ body {
 }
 
 .isim {
-    margin: 0 0 3px;
-    color: var(--vurgu);
+    margin: 0 0 4px;
+    color: var(--lila-ana);
     font-size: 8pt;
-    font-weight: bold;
-    letter-spacing: 2px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
 }
 
 .baslik {
     margin: 0;
     font-family: Georgia, serif;
-    font-size: 25pt;
+    font-size: 24pt;
     line-height: 1.2;
     font-weight: normal;
-    color: var(--kahve);
+    color: var(--lila-koyu);
 }
 
 .alt-baslik {
-    margin: 7px 0 0;
-    color: #856E65;
+    margin: 6px 0 0;
+    color: #8C7882;
     font-size: 9pt;
+    font-style: italic;
 }
 
 .dekor-cizgi {
-    width: 52px;
+    width: 48px;
     height: 3px;
-    margin: 22px 0;
-    border-radius: 4px;
-    background: var(--gul);
+    margin: 20px 0 24px;
+    border-radius: 3px;
+    background: linear-gradient(to right, var(--pudra), var(--lila-ana));
 }
 
 .icerik-bolumu {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    margin: 0 0 21px;
+    margin: 0 0 22px;
     break-inside: avoid;
     page-break-inside: avoid;
 }
 
-.bolum-etiketi {
-    flex: 0 0 34px;
-    width: 34px;
-    height: 34px;
-    border: 1px solid var(--gul);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--vurgu);
-    font-family: Georgia, serif;
-    font-size: 10pt;
-}
-
 .bolum-govde {
-    flex: 1;
-    min-width: 0;
+    width: 100%;
 }
 
 .bolum-govde h2 {
-    margin: 2px 0 8px;
-    color: var(--vurgu);
+    margin: 0 0 10px;
+    color: var(--lila-ana);
     font-family: Georgia, serif;
-    font-size: 15pt;
-    line-height: 1.4;
+    font-size: 14.5pt;
+    line-height: 1.35;
     font-weight: normal;
+    border-bottom: 1px dashed var(--pudra-yumusak);
+    padding-bottom: 4px;
 }
 
 .bolum-metni {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
-    color: var(--kahve);
+    color: var(--metin-kahve);
     font-size: 10.5pt;
-    line-height: 1.85;
+    line-height: 1.8;
 }
 
 .alt-imza {
-    margin-top: 28px;
+    margin-top: 32px;
     padding-top: 16px;
-    border-top: 1px solid var(--ince);
+    border-top: 1px solid var(--ince-cizgi);
     text-align: right;
     break-inside: avoid;
 }
 
 .imza-notu {
-    color: #856E65;
-    font-size: 9pt;
+    color: #8C7882;
+    font-size: 8.5pt;
 }
 
 .imza-isim {
-    margin-top: 3px;
-    color: var(--vurgu);
+    margin-top: 2px;
+    color: var(--lila-koyu);
     font-family: Georgia, serif;
-    font-size: 14pt;
+    font-size: 13.5pt;
 }
 
 .alt-marka {
-    margin-top: 15px;
-    color: #967E74;
+    margin-top: 12px;
+    color: var(--lila-ana);
     font-size: 7.5pt;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.8px;
+    opacity: 0.85;
 }
 
 @media screen {
     body {
-        padding: 20px;
+        padding: 24px;
     }
 
     .sayfa-cercevesi {
         max-width: 800px;
         margin: 0 auto;
-        box-shadow: 0 8px 30px rgba(81,65,60,.08);
+        box-shadow: 0 10px 32px rgba(94, 75, 117, 0.08);
     }
 }
 
@@ -320,7 +346,7 @@ body {
         min-height: 0;
         padding: 0;
         border: none;
-        background-color: var(--acik);
+        background-color: var(--acik-krem);
     }
 
     .ust-bolum,
@@ -335,12 +361,18 @@ body {
 <body>
 <main class="sayfa-cercevesi">
     <header class="ust-bolum">
-        <div class="monogram" aria-label="ZE monogramı">ZE</div>
+        <div class="monogram-kapsayici" aria-label="ZEA Monogramı">
+            <div class="monogram-ic">
+                <span class="harf-z">Z</span>
+                <span class="harf-e">E</span>
+                <span class="harf-a">A</span>
+            </div>
+        </div>
         <div class="kimlik">
             <p class="isim">ZEYNEP ESRA ARIKAN</p>
             <h1 class="baslik">Dersimizden Notlar</h1>
             <p class="alt-baslik">
-                Öğrenme yolculuğundan küçük notlar
+                Her ders yeni bir adım, her adım yeni bir keşif
             </p>
         </div>
     </header>
@@ -353,20 +385,21 @@ body {
 
     <footer class="alt-imza">
         <div class="imza-notu">Matematik Öğretmeni</div>
-        <div class="imza-isim">Zeynep Esra Arıkan</div>
-        <div class="alt-marka">ZE · DERSİMİZDEN NOTLAR</div>
+        <div class="imza-isim">Zeynep Esra Arikan</div>
+        <div class="alt-marka">ZEA · DERSİMİZDEN NOTLAR</div>
     </footer>
 </main>
 </body>
 </html>`);
 
     pencere.document.close();
-    pencere.focus();
 
-    setTimeout(function () {
+    pencere.onload = function () {
+        pencere.focus();
         pencere.print();
-    }, 500);
+    };
 };
+
 
         
         
