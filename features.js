@@ -16,9 +16,11 @@
         pdf.className =
             'px-4 py-3 rounded-xl bg-indigo-600 text-white text-sm';
        
+
+
 pdf.onclick = function () {
     const metin = alan.value.trim();
-alert('Yeni PDF kodu çalışıyor!');
+
     if (!metin) {
         alert('Önce bülten metnini oluşturun.');
         return;
@@ -31,140 +33,333 @@ alert('Yeni PDF kodu çalışıyor!');
         return;
     }
 
-    const guvenliMetin = metin.replace(/[&<>"']/g, function (karakter) {
-        return {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;'
-        }[karakter];
+    function guvenliMetin(deger) {
+        return deger.replace(/[&<>"']/g, function (karakter) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[karakter];
+        });
+    }
+
+    const satirlar = metin.split(/\r?\n/);
+    const bolumler = [];
+    let aktifBolum = {
+        baslik: 'Ders Notları',
+        metin: []
+    };
+
+    const basliklar = {
+        'ders özeti': 'Ders Özeti',
+        'dersin özeti': 'Ders Özeti',
+        'kazanımlar': 'Kazanımlar',
+        'kazanimlar': 'Kazanımlar',
+        'çalışma önerileri': 'Çalışma Önerileri',
+        'calisma onerileri': 'Çalışma Önerileri',
+        'ödevler': 'Ödevler',
+        'ödev bilgileri': 'Ödev Bilgileri',
+        'odevler': 'Ödevler'
+    };
+
+    satirlar.forEach(function (satir) {
+        const temiz = satir.trim();
+        const anahtar = temiz
+            .replace(/^#+\s*/, '')
+            .replace(/[:：]\s*$/, '')
+            .toLocaleLowerCase('tr-TR');
+
+        if (basliklar[anahtar]) {
+            if (aktifBolum.metin.some(function (s) {
+                return s.trim();
+            })) {
+                bolumler.push(aktifBolum);
+            }
+
+            aktifBolum = {
+                baslik: basliklar[anahtar],
+                metin: []
+            };
+        } else {
+            aktifBolum.metin.push(satir);
+        }
     });
 
+    if (aktifBolum.metin.some(function (s) {
+        return s.trim();
+    })) {
+        bolumler.push(aktifBolum);
+    }
+
+    const icerikHTML = bolumler.map(function (bolum, index) {
+        return `
+            <section class="icerik-bolumu">
+                <div class="bolum-etiketi">
+                    ${String(index + 1).padStart(2, '0')}
+                </div>
+                <div class="bolum-govde">
+                    <h2>${guvenliMetin(bolum.baslik)}</h2>
+                    <div class="bolum-metni">${guvenliMetin(
+                        bolum.metin.join('\n').trim()
+                    )}</div>
+                </div>
+            </section>
+        `;
+    }).join('');
+
     pencere.document.open();
-    pencere.document.write(`
-<!DOCTYPE html>
+    pencere.document.write(`<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dersimizden Notlar</title>
-
+<title>Dersimizden Notlar | Zeynep Esra Arıkan</title>
 <style>
 @page {
     size: A4;
-    margin: 0;
+    margin: 16mm 17mm 18mm;
+}
+
+:root {
+    --zemin: #F7F0E8;
+    --gul: #D5A4AA;
+    --vurgu: #A96F76;
+    --kahve: #51413C;
+    --ince: #E4CDC7;
+    --acik: #FFFAF5;
 }
 
 * {
     box-sizing: border-box;
 }
 
-body {
-    margin: 0;
-    padding: 16mm;
-    font-family: Georgia, serif;
-    color: #51433f;
-    background-color: #fffaf5;
-    background-image:
-        radial-gradient(ellipse at 0% 0%,
-            #ead0d1 0%, transparent 32%),
-        radial-gradient(ellipse at 100% 12%,
-            #eadcc9 0%, transparent 28%),
-        radial-gradient(ellipse at 0% 100%,
-            #e5c6c8 0%, transparent 30%),
-        radial-gradient(ellipse at 100% 100%,
-            #e7d7c4 0%, transparent 32%);
+html {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
 }
 
-.sayfa {
-    min-height: 265mm;
-    border: 1px solid #d8b9b7;
-    padding: 18mm 13mm;
+body {
+    margin: 0;
+    background: var(--zemin);
+    color: var(--kahve);
+    font-family: Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.75;
+}
+
+.sayfa-cercevesi {
     position: relative;
+    min-height: 255mm;
+    padding: 12mm;
     background:
-        radial-gradient(ellipse at 0% 25%,
-            #f0dfd7 0%, transparent 15%),
-        radial-gradient(ellipse at 100% 65%,
-            #ead8d4 0%, transparent 16%),
-        rgba(255, 252, 248, 0.86);
+        radial-gradient(
+            ellipse at 0% 0%,
+            rgba(213,164,170,.30),
+            transparent 34%
+        ),
+        radial-gradient(
+            ellipse at 100% 100%,
+            rgba(230,196,174,.28),
+            transparent 32%
+        ),
+        var(--acik);
+    border: 1px solid var(--ince);
+}
+
+.ust-bolum {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--ince);
+}
+
+.monogram {
+    width: 58px;
+    height: 58px;
+    flex: 0 0 58px;
+    border: 1px solid var(--gul);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vurgu);
+    font-family: Georgia, serif;
+    font-size: 18pt;
+    letter-spacing: -2px;
+    background: rgba(213,164,170,.12);
+}
+
+.kimlik {
+    min-width: 0;
+}
+
+.isim {
+    margin: 0 0 3px;
+    color: var(--vurgu);
+    font-size: 8pt;
+    font-weight: bold;
+    letter-spacing: 2px;
 }
 
 .baslik {
-    text-align: center;
-    font-family: "Segoe Print", "Comic Sans MS",
-        cursive;
-    font-size: 27pt;
+    margin: 0;
+    font-family: Georgia, serif;
+    font-size: 25pt;
+    line-height: 1.2;
     font-weight: normal;
-    color: #805c68;
-    margin: 0 0 8px;
+    color: var(--kahve);
 }
 
 .alt-baslik {
-    text-align: center;
-    font-size: 11pt;
-    line-height: 1.6;
-    color: #8b7774;
-    margin: 0 0 24px;
+    margin: 7px 0 0;
+    color: #856E65;
+    font-size: 9pt;
 }
 
-.cizgi {
-    width: 70px;
-    height: 2px;
-    margin: 0 auto 26px;
-    background: #cba6a5;
+.dekor-cizgi {
+    width: 52px;
+    height: 3px;
+    margin: 22px 0;
+    border-radius: 4px;
+    background: var(--gul);
 }
 
-.icerik {
+.icerik-bolumu {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin: 0 0 21px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.bolum-etiketi {
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--gul);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vurgu);
+    font-family: Georgia, serif;
+    font-size: 10pt;
+}
+
+.bolum-govde {
+    flex: 1;
+    min-width: 0;
+}
+
+.bolum-govde h2 {
+    margin: 2px 0 8px;
+    color: var(--vurgu);
+    font-family: Georgia, serif;
+    font-size: 15pt;
+    line-height: 1.4;
+    font-weight: normal;
+}
+
+.bolum-metni {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
-    font-family: Arial, sans-serif;
-    font-size: 11pt;
-    line-height: 1.8;
-    color: #403a38;
+    color: var(--kahve);
+    font-size: 10.5pt;
+    line-height: 1.85;
 }
 
-.imza {
-    text-align: right;
+.alt-imza {
     margin-top: 28px;
-    color: #805c68;
-    font-size: 12pt;
-    font-style: italic;
+    padding-top: 16px;
+    border-top: 1px solid var(--ince);
+    text-align: right;
+    break-inside: avoid;
+}
+
+.imza-notu {
+    color: #856E65;
+    font-size: 9pt;
+}
+
+.imza-isim {
+    margin-top: 3px;
+    color: var(--vurgu);
+    font-family: Georgia, serif;
+    font-size: 14pt;
+}
+
+.alt-marka {
+    margin-top: 15px;
+    color: #967E74;
+    font-size: 7.5pt;
+    letter-spacing: 1.5px;
+}
+
+@media screen {
+    body {
+        padding: 20px;
+    }
+
+    .sayfa-cercevesi {
+        max-width: 800px;
+        margin: 0 auto;
+        box-shadow: 0 8px 30px rgba(81,65,60,.08);
+    }
 }
 
 @media print {
     body {
-        padding: 0;
+        background: white;
     }
 
-    .sayfa {
-        min-height: 265mm;
+    .sayfa-cercevesi {
+        min-height: 0;
+        padding: 0;
+        border: none;
+        background-color: var(--acik);
+    }
+
+    .ust-bolum,
+    .icerik-bolumu,
+    .alt-imza {
         break-inside: avoid;
+        page-break-inside: avoid;
     }
 }
 </style>
 </head>
-
 <body>
-<div class="sayfa">
-    <h1 class="baslik">Dersimizden Notlar</h1>
-    <p class="alt-baslik">
-        Her ders yeni bir adım, her adım yeni bir keşif.
-    </p>
-    <div class="cizgi"></div>
+<main class="sayfa-cercevesi">
+    <header class="ust-bolum">
+        <div class="monogram" aria-label="ZE monogramı">ZE</div>
+        <div class="kimlik">
+            <p class="isim">ZEYNEP ESRA ARIKAN</p>
+            <h1 class="baslik">Dersimizden Notlar</h1>
+            <p class="alt-baslik">
+                Öğrenme yolculuğundan küçük notlar
+            </p>
+        </div>
+    </header>
 
-    <main class="icerik">${guvenliMetin}</main>
+    <div class="dekor-cizgi"></div>
 
-    <div class="imza">
-        Sevgiyle,<br>
-        Zeynep Esra Hoca
+    <div class="icerik">
+        ${icerikHTML}
     </div>
-</div>
+
+    <footer class="alt-imza">
+        <div class="imza-notu">Matematik Öğretmeni</div>
+        <div class="imza-isim">Zeynep Esra Arıkan</div>
+        <div class="alt-marka">ZE · DERSİMİZDEN NOTLAR</div>
+    </footer>
+</main>
 </body>
-</html>
-    `);
+</html>`);
+
     pencere.document.close();
     pencere.focus();
 
@@ -172,8 +367,9 @@ body {
         pencere.print();
     }, 500);
 };
- 
 
+        
+        
         const gorsel = document.createElement('button');
         gorsel.type = 'button';
         gorsel.textContent = '🎨 Görsel olarak kaydet';
