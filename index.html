@@ -669,8 +669,26 @@
 
         dailyLessons.forEach(function (lesson) {
             const card = document.createElement('div');
-            card.className =
-                'rounded-xl border border-indigo-100 bg-indigo-50 p-3';
+
+const renkler = [
+    'bg-rose-50 border-rose-200',
+    'bg-purple-50 border-purple-200',
+    'bg-emerald-50 border-emerald-200',
+    'bg-sky-50 border-sky-200',
+    'bg-amber-50 border-amber-200',
+    'bg-pink-50 border-pink-200'
+];
+
+const ogrenciId = String(lesson.studentId || 'bilinmiyor');
+
+let renkIndex = 0;
+for (let i = 0; i < ogrenciId.length; i++) {
+    renkIndex += ogrenciId.charCodeAt(i);
+}
+renkIndex = renkIndex % renkler.length;
+
+card.className =
+    'rounded-xl border p-3 ' + renkler[renkIndex];
 
             const student = typeof students !== 'undefined'
                 ? students.find(function (item) {
