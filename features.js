@@ -939,9 +939,9 @@ function createPastelImage() {
 
 
             
-shareButton.addEventListener('click', async function () {
-    let whatsappWindow = null;
 
+
+shareButton.addEventListener('click', async function () {
     try {
         const lesson =
             typeof selectedLessonForBulletin !== 'undefined'
@@ -962,60 +962,46 @@ shareButton.addEventListener('click', async function () {
             return;
         }
 
-        let phone = String(student.parentPhone).replace(/\D/g, '');
-
-        // Türkiye telefon numarasını WhatsApp biçimine dönüştür.
-        if (phone.startsWith('00')) {
-            phone = phone.slice(2);
-        } else if (phone.startsWith('0')) {
-            phone = '90' + phone.slice(1);
-        } else if (phone.length === 10) {
-            phone = '90' + phone;
-        }
-
-        if (!phone.startsWith('90') || phone.length !== 12) {
-            alert(
-                'Veli telefon numarasını kontrol edin. ' +
-                'Türkiye numarası 05XX XXX XX XX biçiminde olmalı.'
-            );
-            return;
-        }
-
-        // Pencereyi tıklama sırasında açarak engellenme ihtimalini azalt.
-        whatsappWindow = window.open('about:blank', '_blank');
-
         const blob = await createPastelImage();
 
-        // Hazırlanan görseli telefona kaydet.
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
+        const file = new File(
+            [blob],
+            'veli-bulteni.png',
+            { type: 'image/png' }
+        );
 
-        link.href = url;
-        link.download = 'veli-bulteni.png';
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-
-        setTimeout(function () {
-            URL.revokeObjectURL(url);
-        }, 60000);
-
-        // Seçili öğrencinin velisinin WhatsApp sohbetini aç.
-        const whatsappUrl = 'https://wa.me/' + phone;
-
-        if (whatsappWindow && !whatsappWindow.closed) {
-            whatsappWindow.location.href = whatsappUrl;
+        if (
+            navigator.share &&
+            navigator.canShare &&
+            navigator.canShare({ files: [file] })
+        ) {
+            await navigator.share({
+                files: [file],
+                title: 'Dersimizden Notlar',
+                text: 'Ders bülteni'
+            });
         } else {
-            window.location.href = whatsappUrl;
-        }
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
 
+            link.href = url;
+            link.download = 'veli-bulteni.png';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            setTimeout(function () {
+                URL.revokeObjectURL(url);
+            }, 60000);
+
+            alert(
+                'Telefonunuz doğrudan görsel paylaşımını desteklemedi. ' +
+                'Görsel indirildi; galerinizden paylaşabilirsiniz.'
+            );
+        }
     } catch (error) {
-        if (whatsappWindow && !whatsappWindow.closed) {
-            whatsappWindow.close();
-        }
-
         if (error.name !== 'AbortError') {
-            alert('Görsel hazırlanamadı. Lütfen tekrar deneyin.');
+            alert('Görsel paylaşılamadı. Lütfen tekrar deneyin.');
         }
     }
 });
