@@ -926,58 +926,67 @@ function createPastelImage() {
             };
         }
 
-       
-let shareButton = document.getElementById('pastelWhatsAppShare');
+   
+        let shareButton = document.getElementById('pastelWhatsAppShare');
 
-if (!shareButton) {
-    shareButton = document.createElement('button');
-    shareButton.id = 'pastelWhatsAppShare';
-    shareButton.type = 'button';
-    shareButton.textContent = '💌 WhatsApp’ta Görsel Paylaş';
-    shareButton.style.cssText =
-        'background:#dceee8;color:#315d52;border:1px solid #c6e2d9;' +
-        'border-radius:14px;padding:12px 16px;font-size:14px;';
+        if (!shareButton) {
+            shareButton = document.createElement('button');
+            shareButton.id = 'pastelWhatsAppShare';
+            shareButton.type = 'button';
+            shareButton.textContent = '💌 WhatsApp’ta Görsel Paylaş';
+            shareButton.style.cssText =
+                'background:#dceee8;color:#315d52;border:1px solid #c6e2d9;' +
+                'border-radius:14px;padding:12px 16px;font-size:14px;';
 
-    shareButton.addEventListener('click', async function () {
-        try {
-            const blob = await createPastelImage();
+            shareButton.addEventListener('click', async function () {
+                try {
+                    const blob = await createPastelImage();
 
-            const file = new File(
-                [blob],
-                'veli-bulteni.png',
-                { type: 'image/png' }
-            );
+                    const file = new File(
+                        [blob],
+                        'veli-bulteni.png',
+                        { type: 'image/png' }
+                    );
 
-            if (
-                navigator.share &&
-                navigator.canShare &&
-                navigator.canShare({ files: [file] })
-            ) {
-                await navigator.share({
-                    files: [file],
-                    title: 'Veli Bülteni'
-                });
-            } else {
-                alert(
-                    'Bu cihaz doğrudan görsel paylaşımını desteklemiyor. ' +
-                    'Görseli kaydet butonunu kullanabilirsiniz.'
-                );
-            }
-        } catch (error) {
-            if (error.name !== 'AbortError') {
-                alert('Görsel paylaşımı açılamadı. Lütfen tekrar deneyin.');
-            }
-        }
-    });
+                    if (
+                        navigator.share &&
+                        navigator.canShare &&
+                        navigator.canShare({ files: [file] })
+                    ) {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Veli Bülteni'
+                        });
+                    } else {
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = 'veli-bulteni.png';
+                        link.click();
 
-    group.appendChild(shareButton);
-}
- 
+                        setTimeout(function () {
+                            URL.revokeObjectURL(url);
+                        }, 10000);
 
+                        alert(
+                            'Görsel kaydedildi. WhatsApp sohbetini açıp ' +
+                            'galeriden bu görseli ekleyebilirsiniz.'
+                        );
+                    }
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        alert(
+                            'Görsel paylaşımı açılamadı. Lütfen tekrar deneyin.'
+                        );
+                    }
+                }
+            });
 
             group.appendChild(shareButton);
         }
     }
+    
+
 
     function fixReminderText() {
         if (typeof window.generateBulletinText !== 'function') return;
