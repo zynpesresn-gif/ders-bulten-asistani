@@ -926,85 +926,53 @@ function createPastelImage() {
             };
         }
 
-        let shareButton = document.getElementById('pastelWhatsAppShare');
+       
+let shareButton = document.getElementById('pastelWhatsAppShare');
 
-        if (!shareButton) {
-            shareButton = document.createElement('button');
-            shareButton.id = 'pastelWhatsAppShare';
-            shareButton.type = 'button';
-            shareButton.textContent = '💌 WhatsApp’ta Görsel Paylaş';
-            shareButton.style.cssText =
-                'background:#dceee8;color:#315d52;border:1px solid #c6e2d9;' +
-                'border-radius:14px;padding:12px 16px;font-size:14px;';
+if (!shareButton) {
+    shareButton = document.createElement('button');
+    shareButton.id = 'pastelWhatsAppShare';
+    shareButton.type = 'button';
+    shareButton.textContent = '💌 WhatsApp’ta Görsel Paylaş';
+    shareButton.style.cssText =
+        'background:#dceee8;color:#315d52;border:1px solid #c6e2d9;' +
+        'border-radius:14px;padding:12px 16px;font-size:14px;';
 
+    shareButton.addEventListener('click', async function () {
+        try {
+            const blob = await createPastelImage();
 
-            
-
-
-shareButton.addEventListener('click', async function () {
-    try {
-        const lesson =
-            typeof selectedLessonForBulletin !== 'undefined'
-                ? selectedLessonForBulletin
-                : null;
-
-        if (!lesson) {
-            alert('Önce bir öğrencinin ders bültenini seçin.');
-            return;
-        }
-
-        const student = students.find(function (item) {
-            return item.id == lesson.studentId;
-        });
-
-        if (!student || !student.parentPhone) {
-            alert('Bu öğrencinin veli telefon numarası kayıtlı değil.');
-            return;
-        }
-
-        const blob = await createPastelImage();
-
-        const file = new File(
-            [blob],
-            'veli-bulteni.png',
-            { type: 'image/png' }
-        );
-
-        if (
-            navigator.share &&
-            navigator.canShare &&
-            navigator.canShare({ files: [file] })
-        ) {
-            await navigator.share({
-                files: [file],
-                title: 'Dersimizden Notlar',
-                text: 'Ders bülteni'
-            });
-        } else {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-
-            link.href = url;
-            link.download = 'veli-bulteni.png';
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-
-            setTimeout(function () {
-                URL.revokeObjectURL(url);
-            }, 60000);
-
-            alert(
-                'Telefonunuz doğrudan görsel paylaşımını desteklemedi. ' +
-                'Görsel indirildi; galerinizden paylaşabilirsiniz.'
+            const file = new File(
+                [blob],
+                'veli-bulteni.png',
+                { type: 'image/png' }
             );
+
+            if (
+                navigator.share &&
+                navigator.canShare &&
+                navigator.canShare({ files: [file] })
+            ) {
+                await navigator.share({
+                    files: [file],
+                    title: 'Veli Bülteni'
+                });
+            } else {
+                alert(
+                    'Bu cihaz doğrudan görsel paylaşımını desteklemiyor. ' +
+                    'Görseli kaydet butonunu kullanabilirsiniz.'
+                );
+            }
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                alert('Görsel paylaşımı açılamadı. Lütfen tekrar deneyin.');
+            }
         }
-    } catch (error) {
-        if (error.name !== 'AbortError') {
-            alert('Görsel paylaşılamadı. Lütfen tekrar deneyin.');
-        }
-    }
-});
+    });
+
+    group.appendChild(shareButton);
+}
+ 
 
 
             group.appendChild(shareButton);
