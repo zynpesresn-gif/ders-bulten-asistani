@@ -855,6 +855,73 @@ function openStudentArchive(studentId) {
 
         const count = lessons.filter(function (lesson) {
             return String(lesson.studentId) === String(studentId)
+
+
+function getLessonsForDate(key) {
+    if (typeof lessons === 'undefined' || !Array.isArray(lessons)) {
+        return [];
+    }
+
+    return lessons.filter(function (lesson) {
+        return lesson.date === key;
+    }).sort(function (a, b) {
+        return String(a.time || '').localeCompare(String(b.time || ''));
+    });
+}
+
+// ÖĞRENCİ DERS ARŞİVİ
+let archiveStudentId = null;
+
+window.openStudentArchive = function (studentId) {
+    archiveStudentId = studentId;
+
+    const student = students.find(function (s) {
+        return String(s.id) === String(studentId);
+    });
+
+    if (!student) {
+        alert('Öğrenci kaydı bulunamadı.');
+        return;
+    }
+
+    const monthContainer =
+        document.getElementById('studentArchiveMonths');
+    const lessonContainer =
+        document.getElementById('studentArchiveLessons');
+
+    document.getElementById('archiveStudentName').textContent =
+        student.name + ' — Ders Arşivi';
+
+    monthContainer.innerHTML = '';
+    lessonContainer.innerHTML = '';
+
+    const months = [...new Set(
+        lessons.filter(function (lesson) {
+            return String(lesson.studentId) === String(studentId)
+                && lesson.date;
+        }).map(function (lesson) {
+            return lesson.date.slice(0, 7);
+        })
+    )].sort().reverse();
+
+    if (months.length === 0) {
+        monthContainer.innerHTML =
+            '<p class="text-slate-500">Henüz ders kaydı bulunmuyor.</p>';
+    }
+
+    months.forEach(function (month) {
+        const parts = month.split('-');
+        const monthName = new Date(
+            Number(parts[0]),
+            Number(parts[1]) - 1,
+            1
+        ).toLocaleDateString('tr-TR', {
+            month: 'long',
+            year: 'numeric'
+        });
+
+        const count = lessons.filter(function (lesson) {
+            return String(lesson.studentId) === String(studentId)
                 && lesson.date
                 && lesson.date.slice(0, 7) === month;
         }).length;
@@ -875,28 +942,28 @@ function openStudentArchive(studentId) {
 
         button.append(heading, detail);
         button.addEventListener('click', function () {
-            showArchiveMonth(month);
+            window.showArchiveMonth(month);
         });
 
         monthContainer.appendChild(button);
     });
 
     switchTab('student-archive');
-}
+};
 
-function showArchiveMonth(month) {
-    const container = document.getElementById('studentArchiveLessons');
+window.showArchiveMonth = function (month) {
+    const container =
+        document.getElementById('studentArchiveLessons');
+
     container.innerHTML = '';
 
-    const monthLessons = lessons
-        .filter(function (lesson) {
-            return String(lesson.studentId) === String(archiveStudentId)
-                && lesson.date
-                && lesson.date.slice(0, 7) === month;
-        })
-        .sort(function (a, b) {
-            return b.date.localeCompare(a.date);
-        });
+    const monthLessons = lessons.filter(function (lesson) {
+        return String(lesson.studentId) === String(archiveStudentId)
+            && lesson.date
+            && lesson.date.slice(0, 7) === month;
+    }).sort(function (a, b) {
+        return b.date.localeCompare(a.date);
+    });
 
     monthLessons.forEach(function (lesson) {
         const card = document.createElement('button');
@@ -908,7 +975,8 @@ function showArchiveMonth(month) {
         const heading = document.createElement('div');
         heading.className = 'font-semibold text-slate-800';
         heading.textContent =
-            lesson.date + ' — ' + (lesson.subject || 'Konu belirtilmemiş');
+            lesson.date + ' — ' +
+            (lesson.subject || 'Konu belirtilmemiş');
 
         const detail = document.createElement('div');
         detail.className = 'text-sm text-slate-500 mt-1';
@@ -921,8 +989,7 @@ function showArchiveMonth(month) {
 
         container.appendChild(card);
     });
-}
-
+};
 
     function renderSelectedDay(key) {
         const title = document.getElementById('calendarSelectedTitle');
