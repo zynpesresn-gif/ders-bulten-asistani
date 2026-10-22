@@ -937,6 +937,7 @@ function createPastelImage() {
                 'background:#dceee8;color:#315d52;border:1px solid #c6e2d9;' +
                 'border-radius:14px;padding:12px 16px;font-size:14px;';
 
+
             
 shareButton.addEventListener('click', async function () {
     let whatsappWindow = null;
@@ -1019,7 +1020,6 @@ shareButton.addEventListener('click', async function () {
     }
 });
 
-            
 
             group.appendChild(shareButton);
         }
