@@ -611,10 +611,17 @@
 
             const lessons = getLessonsForDate(key);
             if (lessons.length) {
-                button.textContent = day + ' •';
-                button.title = lessons.length + ' ders';
-            }
+    button.innerHTML = day +
+        '<span class="block text-[10px] font-bold text-rose-500">' +
+        '● ' + lessons.length + ' ders</span>';
 
+    button.classList.add(
+        'bg-rose-50',
+        'border-rose-200'
+    );
+
+    button.title = lessons.length + ' ders';
+            }
             button.onclick = function () {
                 selectedDate = date;
                 renderCalendar();
