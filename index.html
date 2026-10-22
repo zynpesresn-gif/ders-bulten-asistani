@@ -55,6 +55,11 @@
                 <button onclick="switchTab('students')" id="nav-students" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm text-slate-400 hover:text-white">
                     <i class="fa-solid fa-user-graduate w-5"></i><span>Öğrencilerim</span>
                 </button>
+                <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-calendar-days w-5"></i><span>Takvim</span>
+                </button>
+
+                
                 <button onclick="switchTab('reports')" id="nav-reports" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm text-slate-400 hover:text-white">
                     <i class="fa-solid fa-paper-plane w-5"></i><span>Veli Bültenleri</span>
                 </button>
@@ -161,6 +166,36 @@
             </div>
             <div id="studentGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </section>
+        
+        <!-- 4. TAKVİM TAB -->
+        <section id="tab-calendar" class="tab-content hidden space-y-6">
+            <div class="flex flex-wrap justify-between items-center gap-3 border-b border-slate-200 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">Ders Takvimim</h2>
+                    <p class="text-sm text-slate-500 mt-1">Derslerini gün gün takip et.</p>
+                </div>
+                <button onclick="calendarChangeMonth(-1)" class="px-4 py-2 rounded-xl border border-slate-200 bg-white">‹ Önceki</button>
+                <button onclick="calendarChangeMonth(1)" class="px-4 py-2 rounded-xl border border-slate-200 bg-white">Sonraki ›</button>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+                <h3 id="calendarMonthTitle" class="text-center text-lg font-bold text-indigo-700 mb-4"></h3>
+                <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-500 mb-2">
+                    <div>Pzt</div><div>Sal</div><div>Çar</div>
+                    <div>Per</div><div>Cum</div><div>Cmt</div><div>Paz</div>
+                </div>
+                <div id="calendarDays" class="grid grid-cols-7 gap-1"></div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                <h3 id="calendarSelectedTitle" class="font-bold text-slate-800 mb-3">Günün Dersleri</h3>
+                <div id="calendarLessonList" class="space-y-3">
+                    <p class="text-sm text-slate-500">Bir gün seçerek derslerini görüntüleyebilirsin.</p>
+                </div>
+            </div>
+        </section>
+
+
 
         <!-- 4. BULLETIN TAB -->
         <section id="tab-reports" class="tab-content hidden space-y-6">
@@ -509,5 +544,157 @@
         }
     </script>
         <script src="features.js"></script>
+    
+<script>
+(function () {
+    let calendarDate = new Date();
+    let selectedDate = new Date();
+
+    function localDateKey(date) {
+        return date.getFullYear() + '-' +
+            String(date.getMonth() + 1).padStart(2, '0') + '-' +
+            String(date.getDate()).padStart(2, '0');
+    }
+
+    window.calendarChangeMonth = function (amount) {
+        calendarDate = new Date(
+            calendarDate.getFullYear(),
+            calendarDate.getMonth() + amount,
+            1
+        );
+        renderCalendar();
+    };
+
+    function renderCalendar() {
+        const title = document.getElementById('calendarMonthTitle');
+        const days = document.getElementById('calendarDays');
+        if (!title || !days) return;
+
+        title.textContent = calendarDate.toLocaleDateString('tr-TR', {
+            month: 'long',
+            year: 'numeric'
+        });
+
+        days.replaceChildren();
+
+        const firstDay = new Date(
+            calendarDate.getFullYear(),
+            calendarDate.getMonth(),
+            1
+        );
+        const offset = (firstDay.getDay() + 6) % 7;
+        const totalDays = new Date(
+            calendarDate.getFullYear(),
+            calendarDate.getMonth() + 1,
+            0
+        ).getDate();
+
+        for (let i = 0; i < offset; i++) {
+            days.appendChild(document.createElement('div'));
+        }
+
+        for (let day = 1; day <= totalDays; day++) {
+            const date = new Date(
+                calendarDate.getFullYear(),
+                calendarDate.getMonth(),
+                day
+            );
+            const key = localDateKey(date);
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = day;
+            button.className =
+                'min-h-12 rounded-xl border text-sm font-medium ' +
+                (key === localDateKey(selectedDate)
+                    ? 'bg-indigo-600 text-white border-indigo-600'
+                    : 'bg-white text-slate-700 border-slate-100 hover:bg-indigo-50');
+
+            const lessons = getLessonsForDate(key);
+            if (lessons.length) {
+                button.textContent = day + ' •';
+                button.title = lessons.length + ' ders';
+            }
+
+            button.onclick = function () {
+                selectedDate = date;
+                renderCalendar();
+                renderSelectedDay(key);
+            };
+
+            days.appendChild(button);
+        }
+
+        renderSelectedDay(localDateKey(selectedDate));
+    }
+
+    function getLessonsForDate(key) {
+        if (typeof lessons === 'undefined' || !Array.isArray(lessons)) {
+            return [];
+        }
+
+        return lessons.filter(function (lesson) {
+            return lesson.date === key;
+        }).sort(function (a, b) {
+            return String(a.time || '').localeCompare(String(b.time || ''));
+        });
+    }
+
+    function renderSelectedDay(key) {
+        const title = document.getElementById('calendarSelectedTitle');
+        const list = document.getElementById('calendarLessonList');
+        if (!title || !list) return;
+
+        title.textContent = new Date(key + 'T12:00:00').toLocaleDateString(
+            'tr-TR',
+            { day: 'numeric', month: 'long', year: 'numeric' }
+        ) + ' — Dersler';
+
+        list.replaceChildren();
+        const dailyLessons = getLessonsForDate(key);
+
+        if (!dailyLessons.length) {
+            list.textContent = 'Bu gün için kayıtlı ders görünmüyor.';
+            list.className = 'text-sm text-slate-500';
+            return;
+        }
+
+        list.className = 'space-y-3';
+
+        dailyLessons.forEach(function (lesson) {
+            const card = document.createElement('div');
+            card.className =
+                'rounded-xl border border-indigo-100 bg-indigo-50 p-3';
+
+            const student = typeof students !== 'undefined'
+                ? students.find(function (item) {
+                    return item.id == lesson.studentId;
+                })
+                : null;
+
+            const name = document.createElement('p');
+            name.className = 'font-semibold text-slate-800';
+            name.textContent = student ? student.name : 'Öğrenci';
+
+            const detail = document.createElement('p');
+            detail.className = 'text-sm text-slate-600 mt-1';
+            detail.textContent =
+                (lesson.time || 'Saat belirtilmemiş') +
+                (lesson.duration ? ' · ' + lesson.duration + ' dakika' : '');
+
+            card.append(name, detail);
+            list.appendChild(card);
+        });
+    }
+
+    window.renderLessonCalendar = renderCalendar;
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', renderCalendar);
+    } else {
+        renderCalendar();
+    }
+})();
+</script>
+
 </body>
 </html>
