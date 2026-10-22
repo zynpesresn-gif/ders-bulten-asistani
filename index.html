@@ -726,6 +726,12 @@ const card = document.createElement('div');
 const renk = ogrenciRengiBul(lesson.studentId);
 
 card.className = 'rounded-xl border p-3 ' + renk.kart;
+            card.style.cursor = 'pointer';
+card.title = 'Ders ayrıntılarını aç';
+
+card.addEventListener('click', function () {
+    editLesson(lesson.id);
+});
             const student = typeof students !== 'undefined'
                 ? students.find(function (item) {
                     return item.id == lesson.studentId;
