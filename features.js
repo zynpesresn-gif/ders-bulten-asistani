@@ -937,43 +937,89 @@ function createPastelImage() {
                 'background:#dceee8;color:#315d52;border:1px solid #c6e2d9;' +
                 'border-radius:14px;padding:12px 16px;font-size:14px;';
 
-            shareButton.addEventListener('click', async function () {
-                try {
-                    const blob = await createPastelImage();
-                    const file = new File(
-                        [blob],
-                        'veli-bulteni.png',
-                        { type: 'image/png' }
-                    );
+            
+shareButton.addEventListener('click', async function () {
+    let whatsappWindow = null;
 
-                    if (navigator.canShare && navigator.share &&
-                        navigator.canShare({ files: [file] })) {
-                        await navigator.share({
-                            files: [file],
-                            title: 'Veli Bülteni'
-                        });
-                    } else {
-                        const url = URL.createObjectURL(blob);
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.download = 'veli-bulteni.png';
-                        link.click();
+    try {
+        const lesson =
+            typeof selectedLessonForBulletin !== 'undefined'
+                ? selectedLessonForBulletin
+                : null;
 
-                        setTimeout(function () {
-                            URL.revokeObjectURL(url);
-                        }, 10000);
+        if (!lesson) {
+            alert('Önce bir öğrencinin ders bültenini seçin.');
+            return;
+        }
 
-                        alert(
-                            'Görsel kaydedildi. WhatsApp sohbetini açıp ' +
-                            'galeriden bu görseli ekleyebilirsiniz.'
-                        );
-                    }
-                } catch (error) {
-                    if (error.name !== 'AbortError') {
-                        alert('Paylaşım açılamadı. Görseli kaydetmeyi deneyin.');
-                    }
-                }
-            });
+        const student = students.find(function (item) {
+            return item.id == lesson.studentId;
+        });
+
+        if (!student || !student.parentPhone) {
+            alert('Bu öğrencinin veli telefon numarası kayıtlı değil.');
+            return;
+        }
+
+        let phone = String(student.parentPhone).replace(/\D/g, '');
+
+        // Türkiye telefon numarasını WhatsApp biçimine dönüştür.
+        if (phone.startsWith('00')) {
+            phone = phone.slice(2);
+        } else if (phone.startsWith('0')) {
+            phone = '90' + phone.slice(1);
+        } else if (phone.length === 10) {
+            phone = '90' + phone;
+        }
+
+        if (!phone.startsWith('90') || phone.length !== 12) {
+            alert(
+                'Veli telefon numarasını kontrol edin. ' +
+                'Türkiye numarası 05XX XXX XX XX biçiminde olmalı.'
+            );
+            return;
+        }
+
+        // Pencereyi tıklama sırasında açarak engellenme ihtimalini azalt.
+        whatsappWindow = window.open('about:blank', '_blank');
+
+        const blob = await createPastelImage();
+
+        // Hazırlanan görseli telefona kaydet.
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+
+        link.href = url;
+        link.download = 'veli-bulteni.png';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        setTimeout(function () {
+            URL.revokeObjectURL(url);
+        }, 60000);
+
+        // Seçili öğrencinin velisinin WhatsApp sohbetini aç.
+        const whatsappUrl = 'https://wa.me/' + phone;
+
+        if (whatsappWindow && !whatsappWindow.closed) {
+            whatsappWindow.location.href = whatsappUrl;
+        } else {
+            window.location.href = whatsappUrl;
+        }
+
+    } catch (error) {
+        if (whatsappWindow && !whatsappWindow.closed) {
+            whatsappWindow.close();
+        }
+
+        if (error.name !== 'AbortError') {
+            alert('Görsel hazırlanamadı. Lütfen tekrar deneyin.');
+        }
+    }
+});
+
+            
 
             group.appendChild(shareButton);
         }
