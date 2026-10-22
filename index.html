@@ -792,6 +792,100 @@ function showArchiveMonth(month) {
     const container =
         document.getElementById('studentArchiveLessons');
 
+
+function getLessonsForDate(key) {
+    if (typeof lessons === 'undefined' || !Array.isArray(lessons)) {
+        return [];
+    }
+
+    return lessons.filter(function (lesson) {
+        return lesson.date === key;
+    }).sort(function (a, b) {
+        return String(a.time || '').localeCompare(String(b.time || ''));
+    });
+}
+
+// ÖĞRENCİ DERS ARŞİVİ
+let archiveStudentId = null;
+
+function openStudentArchive(studentId) {
+    archiveStudentId = studentId;
+
+    const student = students.find(function (s) {
+        return String(s.id) === String(studentId);
+    });
+
+    if (!student) return;
+
+    document.getElementById('archiveStudentName').textContent =
+        student.name + ' — Ders Arşivi';
+
+    const monthContainer = document.getElementById('studentArchiveMonths');
+    const lessonContainer = document.getElementById('studentArchiveLessons');
+
+    monthContainer.innerHTML = '';
+    lessonContainer.innerHTML = '';
+
+    const months = [...new Set(
+        lessons
+            .filter(function (lesson) {
+                return String(lesson.studentId) === String(studentId)
+                    && lesson.date;
+            })
+            .map(function (lesson) {
+                return lesson.date.slice(0, 7);
+            })
+    )].sort().reverse();
+
+    if (months.length === 0) {
+        monthContainer.innerHTML =
+            '<p class="text-slate-500">Henüz ders kaydı bulunmuyor.</p>';
+    }
+
+    months.forEach(function (month) {
+        const parts = month.split('-');
+        const monthName = new Date(
+            Number(parts[0]),
+            Number(parts[1]) - 1,
+            1
+        ).toLocaleDateString('tr-TR', {
+            month: 'long',
+            year: 'numeric'
+        });
+
+        const count = lessons.filter(function (lesson) {
+            return String(lesson.studentId) === String(studentId)
+                && lesson.date
+                && lesson.date.slice(0, 7) === month;
+        }).length;
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className =
+            'w-full text-left bg-white border border-amber-200 ' +
+            'rounded-2xl p-4 shadow-sm hover:bg-amber-50';
+
+        const heading = document.createElement('div');
+        heading.className = 'font-semibold text-slate-800';
+        heading.textContent = '📁 ' + monthName;
+
+        const detail = document.createElement('div');
+        detail.className = 'text-sm text-slate-500 mt-1';
+        detail.textContent = count + ' ders kaydı';
+
+        button.append(heading, detail);
+        button.addEventListener('click', function () {
+            showArchiveMonth(month);
+        });
+
+        monthContainer.appendChild(button);
+    });
+
+    switchTab('student-archive');
+}
+
+function showArchiveMonth(month) {
+    const container = document.getElementById('studentArchiveLessons');
     container.innerHTML = '';
 
     const monthLessons = lessons
@@ -806,19 +900,21 @@ function showArchiveMonth(month) {
 
     monthLessons.forEach(function (lesson) {
         const card = document.createElement('button');
-
+        card.type = 'button';
         card.className =
             'w-full text-left bg-white border border-slate-200 ' +
             'rounded-xl p-4 hover:bg-indigo-50';
 
-        const subject = lesson.subject || 'Konu belirtilmemiş';
+        const heading = document.createElement('div');
+        heading.className = 'font-semibold text-slate-800';
+        heading.textContent =
+            lesson.date + ' — ' + (lesson.subject || 'Konu belirtilmemiş');
 
-        card.innerHTML =
-            '<div class="font-semibold text-slate-800">' +
-            lesson.date + ' — ' + subject + '</div>' +
-            '<div class="text-sm text-slate-500 mt-1">' +
-            'Ders kaydını açmak için dokun</div>';
+        const detail = document.createElement('div');
+        detail.className = 'text-sm text-slate-500 mt-1';
+        detail.textContent = 'Ders kaydını açmak için dokun';
 
+        card.append(heading, detail);
         card.addEventListener('click', function () {
             editLesson(lesson.id);
         });
@@ -827,12 +923,6 @@ function showArchiveMonth(month) {
     });
 }
 
-        return lessons.filter(function (lesson) {
-            return lesson.date === key;
-        }).sort(function (a, b) {
-            return String(a.time || '').localeCompare(String(b.time || ''));
-        });
-    }
 
     function renderSelectedDay(key) {
         const title = document.getElementById('calendarSelectedTitle');
