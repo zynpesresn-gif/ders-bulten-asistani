@@ -610,18 +610,29 @@
                     : 'bg-white text-slate-700 border-slate-100 hover:bg-indigo-50');
 
             const lessons = getLessonsForDate(key);
-            if (lessons.length) {
-    button.innerHTML = day +
-        '<span class="block text-[10px] font-bold text-rose-500">' +
-        '● ' + lessons.length + ' ders</span>';
+if (lessons.length) {
+    button.textContent = day;
 
-    button.classList.add(
-        'bg-rose-50',
-        'border-rose-200'
-    );
+    const dots = document.createElement('div');
+    dots.className = 'flex justify-center gap-1 mt-1';
 
+    const ogrenciIdleri = [...new Set(
+        lessons.map(lesson => String(lesson.studentId))
+    )];
+
+    ogrenciIdleri.forEach(id => {
+        const renk = ogrenciRengiBul(id);
+
+        const dot = document.createElement('span');
+        dot.className =
+            'w-2 h-2 rounded-full ' + renk.nokta;
+
+        dots.appendChild(dot);
+    });
+
+    button.appendChild(dots);
     button.title = lessons.length + ' ders';
-            }
+}
             button.onclick = function () {
                 selectedDate = date;
                 renderCalendar();
@@ -633,7 +644,32 @@
 
         renderSelectedDay(localDateKey(selectedDate));
     }
+const ogrenciRenkleri = [
+    { kart: 'bg-rose-50 border-rose-200', nokta: 'bg-rose-500' },
+    { kart: 'bg-purple-50 border-purple-200', nokta: 'bg-purple-500' },
+    { kart: 'bg-emerald-50 border-emerald-200', nokta: 'bg-emerald-500' },
+    { kart: 'bg-sky-50 border-sky-200', nokta: 'bg-sky-500' },
+    { kart: 'bg-amber-50 border-amber-200', nokta: 'bg-amber-500' },
+    { kart: 'bg-pink-50 border-pink-200', nokta: 'bg-pink-500' },
+    { kart: 'bg-teal-50 border-teal-200', nokta: 'bg-teal-500' },
+    { kart: 'bg-orange-50 border-orange-200', nokta: 'bg-orange-500' },
+    { kart: 'bg-indigo-50 border-indigo-200', nokta: 'bg-indigo-500' },
+    { kart: 'bg-lime-50 border-lime-200', nokta: 'bg-lime-500' },
+    { kart: 'bg-fuchsia-50 border-fuchsia-200', nokta: 'bg-fuchsia-500' },
+    { kart: 'bg-cyan-50 border-cyan-200', nokta: 'bg-cyan-500' }
+];
 
+function ogrenciRengiBul(ogrenciId) {
+    const index = typeof students !== 'undefined'
+        ? students.findIndex(function (ogrenci) {
+            return String(ogrenci.id) === String(ogrenciId);
+        })
+        : -1;
+
+    return ogrenciRenkleri[
+        (index >= 0 ? index : 0) % ogrenciRenkleri.length
+    ];
+}
     function getLessonsForDate(key) {
         if (typeof lessons === 'undefined' || !Array.isArray(lessons)) {
             return [];
@@ -668,28 +704,11 @@
         list.className = 'space-y-3';
 
         dailyLessons.forEach(function (lesson) {
-            const card = document.createElement('div');
 
-const renkler = [
-    'bg-rose-50 border-rose-200',
-    'bg-purple-50 border-purple-200',
-    'bg-emerald-50 border-emerald-200',
-    'bg-sky-50 border-sky-200',
-    'bg-amber-50 border-amber-200',
-    'bg-pink-50 border-pink-200'
-];
+const card = document.createElement('div');
+const renk = ogrenciRengiBul(lesson.studentId);
 
-const ogrenciId = String(lesson.studentId || 'bilinmiyor');
-
-let renkIndex = 0;
-for (let i = 0; i < ogrenciId.length; i++) {
-    renkIndex += ogrenciId.charCodeAt(i);
-}
-renkIndex = renkIndex % renkler.length;
-
-card.className =
-    'rounded-xl border p-3 ' + renkler[renkIndex];
-
+card.className = 'rounded-xl border p-3 ' + renk.kart;
             const student = typeof students !== 'undefined'
                 ? students.find(function (item) {
                     return item.id == lesson.studentId;
