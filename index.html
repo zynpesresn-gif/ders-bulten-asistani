@@ -638,7 +638,7 @@
             const ids = [...new Set(dayLessons.map(l => String(l.studentId)))];
             if (ids.length) {
                 const colorArea = document.createElement('span');
-                colorArea.className = 'absolute inset-0 flex';
+                colorArea.className = 'absolute inset-0 flex flex-col';
                 ids.forEach(id => {
                     const segment = document.createElement('span');
                     segment.className = 'flex-1 ' + studentColor(id).stripe;
@@ -758,18 +758,38 @@
             return;
         }
         monthLessons.forEach(lesson => {
-            const card = document.createElement('button');
-            card.type = 'button';
-            card.className = 'w-full text-left bg-white border border-slate-200 rounded-xl p-4 hover:bg-indigo-50';
+            const row = document.createElement('div');
+            row.className = 'flex flex-col sm:flex-row gap-3 items-stretch sm:items-center bg-white border border-slate-200 rounded-xl p-3';
+            const openButton = document.createElement('button');
+            openButton.type = 'button';
+            openButton.className = 'flex-1 min-w-0 text-left rounded-lg p-2 hover:bg-indigo-50';
             const heading = document.createElement('div');
             heading.className = 'font-semibold text-slate-800';
             heading.textContent = lesson.date + ' — ' + (lesson.subject || 'Konu belirtilmemiş');
             const detail = document.createElement('div');
             detail.className = 'text-sm text-slate-500 mt-1';
             detail.textContent = 'Ders kaydını açmak için dokun';
-            card.append(heading, detail);
-            card.addEventListener('click', () => window.editLesson(lesson.id));
-            container.appendChild(card);
+            openButton.append(heading, detail);
+            openButton.addEventListener('click', () => window.editLesson(lesson.id));
+
+            const deleteButton = document.createElement('button');
+            deleteButton.type = 'button';
+            deleteButton.className = 'px-4 py-2 text-sm font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-lg hover:bg-rose-100';
+            deleteButton.textContent = 'Kaydı sil';
+            deleteButton.addEventListener('click', (event) => {
+                event.stopPropagation();
+                if (!confirm(lesson.date + ' tarihli ders kaydı kalıcı olarak silinsin mi? Bu işlem geri alınamaz.')) return;
+                lessons = lessons.filter(item => String(item.id) !== String(lesson.id));
+                localStorage.setItem('dt_lessons', JSON.stringify(lessons));
+                renderDashboardStats();
+                renderRecentLessons();
+                renderBulletinLessonSelector();
+                window.showArchiveMonth(month);
+                if (typeof window.renderLessonCalendar === 'function') window.renderLessonCalendar();
+                alert('Ders kaydı silindi.');
+            });
+            row.append(openButton, deleteButton);
+            container.appendChild(row);
         });
     };
 
